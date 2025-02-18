@@ -28,6 +28,11 @@ const Hero = () => {
             A Retrieval-Augmented Generation (RAG) System for Legal and Law
             Enforcement
           </p>
+          <a href="/dashboard">
+            <button className="px-6 py-3 bg-indigo-800 text-white cursor-pointer font-semibold rounded-md shadow-lg hover:bg-indigo-900 active:scale-95 transition-all">
+              Dashboard
+            </button>
+          </a>
         </div>
       </main>
 

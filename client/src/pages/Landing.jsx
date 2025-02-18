@@ -1,7 +1,7 @@
 import React from "react";
 import Hero from "../components/home/Hero";
 
-const Home = () => {
+const Landing = () => {
   return (
     <div>
       <Hero />
@@ -9,4 +9,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Landing;
