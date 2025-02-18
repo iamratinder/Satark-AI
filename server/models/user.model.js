@@ -25,9 +25,6 @@ const userSchema = new mongoose.Schema({
         required:true,
         select:false,
     }, 
-    socketId: {
-        type: String,
-    }
  })
 
  userSchema.methods.generateAuthToken = function(){
