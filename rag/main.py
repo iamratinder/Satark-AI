@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 from pathlib import Path
@@ -18,9 +19,23 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(title="Legal RAG API")
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://satark-ai.vercel.app",
+        "https://satark-ai.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:5174"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 # Define paths
 BASE_DIR = Path(__file__).parent
-PDF_PATH = BASE_DIR / "repealedfileopen.pdf"
 CHROMA_DB_DIR = BASE_DIR / "chroma_db"
 
 # Initialize global variables
@@ -30,27 +45,40 @@ retrieval_chain = None
 class Query(BaseModel):
     question: str
 
+class DocumentUpdate(BaseModel):
+    pdf_path: str
+
 def initialize_db():
     """Initialize ChromaDB and return the database instance"""
-    if not PDF_PATH.exists():
-        raise FileNotFoundError(
-            f"PDF file not found at {PDF_PATH}. "
-            f"Please ensure 'repealedfileopen.pdf' is in the same directory as this script: {BASE_DIR}"
-        )
-    
     embedding_function = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
     
+    # If ChromaDB exists, load it regardless of PDF presence
     if CHROMA_DB_DIR.exists():
         print(f"Loading existing ChromaDB from {CHROMA_DB_DIR}...")
         return Chroma(
             persist_directory=str(CHROMA_DB_DIR),
             embedding_function=embedding_function
         )
+    else:
+        raise RuntimeError(
+            f"ChromaDB directory not found at {CHROMA_DB_DIR}. "
+            "Please run the indexing script locally first to create the embeddings database."
+        )
+
+def create_new_db(pdf_path: str):
+    """Create a new ChromaDB from a PDF file"""
+    pdf_path = Path(pdf_path)
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"PDF file not found at {pdf_path}")
+    
+    embedding_function = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
     
     print(f"Creating new ChromaDB at {CHROMA_DB_DIR}...")
-    loader = PyPDFLoader(str(PDF_PATH))
+    loader = PyPDFLoader(str(pdf_path))
     docs = loader.load()
     
     text_splitter = RecursiveCharacterTextSplitter(
@@ -59,8 +87,11 @@ def initialize_db():
     )
     documents = text_splitter.split_documents(docs)
     
+    # Ensure the directory exists
+    CHROMA_DB_DIR.mkdir(parents=True, exist_ok=True)
+    
     db = Chroma.from_documents(
-        documents[:50],
+        documents,
         embedding_function,
         persist_directory=str(CHROMA_DB_DIR)
     )
@@ -118,6 +149,23 @@ async def answer_question(query: Query):
         raise HTTPException(
             status_code=500,
             detail=f"Error processing question: {str(e)}"
+        )
+
+@app.post("/update-documents")
+async def update_documents(update: DocumentUpdate):
+    """
+    Endpoint to update the document database with a new PDF
+    This should only be called in a development/staging environment
+    """
+    global db, retrieval_chain
+    try:
+        db = create_new_db(update.pdf_path)
+        retrieval_chain = setup_chain(db)
+        return {"status": "success", "message": "Document database updated successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error updating documents: {str(e)}"
         )
 
 @app.get("/health")
