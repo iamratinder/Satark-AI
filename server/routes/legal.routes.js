@@ -4,16 +4,13 @@ const {
   getSearchHistory,
   getSearchDetails
 } = require("../controllers/legal.controller");
-const authMiddleware = require("../middlewares/auth.middleware");
+const { authUser } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(authMiddleware);
-
-// Legal knowledge search routes
-router.post("/search", searchLegalKnowledge);
-router.get("/history", getSearchHistory);
-router.get("/history/:id", getSearchDetails);
+// Use authUser instead of authMiddleware
+router.post("/search", authUser, searchLegalKnowledge);
+router.get("/history", authUser, getSearchHistory);
+router.get("/history/:id", authUser, getSearchDetails);
 
 module.exports = router;
