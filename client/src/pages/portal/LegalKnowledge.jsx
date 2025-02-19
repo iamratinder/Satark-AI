@@ -12,20 +12,30 @@ const LegalKnowledge = () => {
   const [error, setError] = useState(null);
   const [isListening, setIsListening] = useState(false);
 
+  const commands = [
+    {
+      command: 'reset',
+      callback: () => resetTranscript()
+    },
+    {
+      command: 'search',
+      callback: () => handleSearch()
+    }
+  ];
+
   const {
     transcript,
     listening,
     resetTranscript,
-    browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
+    browserSupportsSpeechRecognition,
+    isMicrophoneAvailable
+  } = useSpeechRecognition({ commands });
 
   useEffect(() => {
-    // Fetch search history when component mounts
     fetchSearchHistory();
   }, []);
 
   useEffect(() => {
-    // Update query when transcript changes
     if (transcript) {
       setQuery(transcript);
     }
@@ -84,8 +94,37 @@ const LegalKnowledge = () => {
     } else {
       setIsListening(true);
       resetTranscript();
-      SpeechRecognition.startListening({ continuous: true });
+      SpeechRecognition.startListening({ continuous: true, language: 'en-US' });
     }
+  };
+
+  const renderVoiceStatus = () => {
+    if (!browserSupportsSpeechRecognition) {
+      return (
+        <div className="mt-2 text-sm text-gray-500">
+          Browser doesn't support speech recognition.
+        </div>
+      );
+    }
+
+    if (!isMicrophoneAvailable) {
+      return (
+        <div className="mt-2 text-sm text-red-500">
+          Please allow microphone access to use voice input.
+        </div>
+      );
+    }
+
+    if (isListening) {
+      return (
+        <div className="mt-2 flex items-center gap-2">
+          <div className="animate-pulse w-2 h-2 rounded-full bg-red-500"></div>
+          <span className="text-sm text-gray-700">Listening...</span>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -135,6 +174,16 @@ const LegalKnowledge = () => {
               </button>
             </div>
           </div>
+
+          {renderVoiceStatus()}
+
+          {isListening && transcript && (
+            <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Current transcript:</span> {transcript}
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 flex items-start gap-2">
@@ -213,7 +262,6 @@ const LegalKnowledge = () => {
         </div>
       </div>
 
-      {/* Search History Section */}
       <div className="bg-white rounded-lg shadow-lg">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold flex items-center gap-2">
