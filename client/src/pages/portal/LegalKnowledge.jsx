@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Search, BookOpen, Clock, FileText, DownloadCloud } from "lucide-react";
-import axios from "axios";
+import { Search, BookOpen, Clock, FileText, AlertCircle } from "lucide-react";
+import legalApiService from "../../services/legalApi";
 
 const LegalKnowledge = () => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Fetch search history when component mounts
@@ -15,14 +16,11 @@ const LegalKnowledge = () => {
 
   const fetchSearchHistory = async () => {
     try {
-      const response = await axios.get("/api/legal/history", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setSearchHistory(response.data.history || []);
+      const history = await legalApiService.getSearchHistory();
+      setSearchHistory(history || []);
     } catch (error) {
       console.error("Failed to fetch search history:", error);
+      setError("Unable to load search history. Please try again later.");
     }
   };
 
@@ -30,30 +28,36 @@ const LegalKnowledge = () => {
     if (!query.trim()) return;
 
     setIsLoading(true);
+    setError(null);
+    
     try {
-      const response = await axios.post(
-        "/api/legal/search",
-        { query },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setResults(response.data);
+      const data = await legalApiService.searchLegalKnowledge(query);
+      setResults(data);
       
       // Update search history after successful search
       fetchSearchHistory();
     } catch (error) {
       console.error("Search failed:", error);
+      setError("Failed to retrieve legal knowledge. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleHistoryItemClick = (historyQuery) => {
-    setQuery(historyQuery);
-    // Optionally auto-search with this query
+  const handleHistoryItemClick = async (historyId) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const searchData = await legalApiService.getSearchDetails(historyId);
+      setQuery(searchData.query);
+      setResults(searchData.results);
+    } catch (error) {
+      console.error("Failed to load search details:", error);
+      setError("Unable to load previous search. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,6 +92,13 @@ const LegalKnowledge = () => {
               <Search className="w-5 h-5" />
             </button>
           </div>
+
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
 
           {isLoading && (
             <div className="flex justify-center items-center my-8">
@@ -173,11 +184,11 @@ const LegalKnowledge = () => {
             <p className="text-gray-500 text-center py-4">No search history yet.</p>
           ) : (
             <ul className="divide-y divide-gray-200">
-              {searchHistory.map((item, index) => (
+              {searchHistory.map((item) => (
                 <li
-                  key={index}
+                  key={item._id}
                   className="py-4 hover:bg-gray-50 cursor-pointer transition-colors px-2 rounded"
-                  onClick={() => handleHistoryItemClick(item.query)}
+                  onClick={() => handleHistoryItemClick(item._id)}
                 >
                   <div className="flex items-start gap-3">
                     <Search className="w-5 h-5 text-gray-400 mt-0.5" />
