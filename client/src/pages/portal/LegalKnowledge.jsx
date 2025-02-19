@@ -1,5 +1,7 @@
+import "regenerator-runtime/runtime";
 import React, { useState, useEffect } from "react";
-import { Search, BookOpen, Clock, FileText, AlertCircle } from "lucide-react";
+import { Search, BookOpen, Clock, FileText, AlertCircle, Mic, MicOff } from "lucide-react";
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import legalApiService from "../../services/legalApi";
 
 const LegalKnowledge = () => {
@@ -8,11 +10,26 @@ const LegalKnowledge = () => {
   const [results, setResults] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
   const [error, setError] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
 
   useEffect(() => {
     // Fetch search history when component mounts
     fetchSearchHistory();
   }, []);
+
+  useEffect(() => {
+    // Update query when transcript changes
+    if (transcript) {
+      setQuery(transcript);
+    }
+  }, [transcript]);
 
   const fetchSearchHistory = async () => {
     try {
@@ -60,6 +77,17 @@ const LegalKnowledge = () => {
     }
   };
 
+  const toggleListening = () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+      setIsListening(false);
+    } else {
+      setIsListening(true);
+      resetTranscript();
+      SpeechRecognition.startListening({ continuous: true });
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="bg-white rounded-lg shadow-lg mb-6">
@@ -81,16 +109,31 @@ const LegalKnowledge = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="e.g., What are the latest updates in cybercrime laws?"
-              className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-4 pr-24 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
-            <button
-              onClick={handleSearch}
-              disabled={isLoading || !query.trim()}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              <Search className="w-5 h-5" />
-            </button>
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+              {browserSupportsSpeechRecognition && (
+                <button
+                  onClick={toggleListening}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isListening 
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                  title={isListening ? "Stop voice input" : "Start voice input"}
+                >
+                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                </button>
+              )}
+              <button
+                onClick={handleSearch}
+                disabled={isLoading || !query.trim()}
+                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {error && (
