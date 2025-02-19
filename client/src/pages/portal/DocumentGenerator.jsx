@@ -3,7 +3,6 @@ import {
   FileText,
   Send,
   Download,
-  ChevronDown,
   Copy,
   CheckCircle,
   Clipboard,
@@ -49,7 +48,6 @@ const DocumentGenerator = () => {
       color: "#7c3aed",
     },
     { id: "summons", label: "Summons", icon: Mail, color: "#ea580c" },
-    { id: "bailorder", label: "Bail Order", icon: FileCheck, color: "#0891b2" },
     {
       id: "testimony",
       label: "Testimony",
