@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import {
+  NavLink,
+  Outlet,
+  useLocation,
+  Link,
+  useNavigate,
+} from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import {
   Menu,
   Book,
@@ -10,7 +17,6 @@ import {
   BarChart2,
   LogOut,
   Shield,
-  Bell,
   User,
 } from "lucide-react";
 
@@ -24,6 +30,8 @@ const Layout = () => {
     window.innerWidth < MOBILE_BREAKPOINT
   );
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth(); // Add useAuth hook
 
   useEffect(() => {
     const handleResize = () => {
@@ -36,32 +44,26 @@ const Layout = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Failed to log out. Please try again.");
+    }
+  };
+
   const menuItems = [
-    {
-      icon: Home,
-      label: "Command Center",
-      path: "/dashboard",
-    },
-    {
-      icon: Book,
-      label: "Legal Database",
-      path: "/dashboard/knowledge",
-    },
+    { icon: Home, label: "Command Center", path: "/dashboard" },
+    { icon: Book, label: "Legal Database", path: "/dashboard/knowledge" },
     {
       icon: FileText,
       label: "Document Generator",
       path: "/dashboard/generate",
     },
-    {
-      icon: MessageCircle,
-      label: "Legal Consultation",
-      path: "/dashboard/qa",
-    },
-    {
-      icon: BarChart2,
-      label: "Analytics Hub",
-      path: "/dashboard/analysis",
-    },
+    { icon: MessageCircle, label: "Legal Consultation", path: "/dashboard/qa" },
+    { icon: BarChart2, label: "Analytics Hub", path: "/dashboard/analysis" },
   ];
 
   const toggleSidebar = () => {
@@ -96,17 +98,17 @@ const Layout = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
-              <Bell className="w-5 h-5 text-gray-700" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
             <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                 <User className="w-5 h-5 text-gray-700" />
               </div>
               <div className="text-sm">
-                <p className="font-medium text-gray-900">Officer John Doe</p>
-                <p className="text-gray-600">Badge #12345</p>
+                <p className="font-medium text-gray-900">
+                  {user
+                    ? `${user.fullname.firstname} ${user.fullname.lastname}`
+                    : "User"}
+                </p>
+                <p className="text-gray-600">{user?.email || "Loading..."}</p>
               </div>
             </div>
           </div>
@@ -163,7 +165,9 @@ const Layout = () => {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-all">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-all">
             <LogOut className="w-5 h-5" />
             <span className="font-medium">Sign Out</span>
           </button>
@@ -187,8 +191,9 @@ const Layout = () => {
 
       {/* Main Content */}
       <div
-        className={`flex-1 min-h-screen flex flex-col transition-all duration-200
-          ${isSidebarOpen && !isMobile ? "ml-64" : ""}`}>
+        className={`flex-1 min-h-screen flex flex-col transition-all duration-200 ${
+          isSidebarOpen && !isMobile ? "ml-64" : ""
+        }`}>
         <Navbar />
         <main className="flex-1 p-6 md:p-8">
           <Outlet />

@@ -9,15 +9,22 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({extended: true}));
 const connectToDb = require('./db/db');
-const userRoutes = require('./routes/user.routes');
+
 const { cookie } = require('express-validator');
 connectToDb();
+
+const userRoutes = require('./routes/user.routes');
+const legalRoutes = require("./routes/legal.routes");
+const legalQARoutes = require('./routes/legalQA.routes');
+
 
 app.get('/', (req,res) => {
     res.send('Hello World');
 })
 
 app.use('/users',userRoutes);
+app.use('/legal',legalRoutes);
+app.use('/legal-qa', legalQARoutes);
 
 
 
