@@ -424,13 +424,13 @@ const DocumentGenerator = () => {
 
                     {/* JSON Preview Section */}
                     <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
-                      <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      {/* <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
                         <FileText className="w-3 h-3 text-gray-500" />
                         JSON Response (API Output)
                       </h4>
                       <pre className="bg-gray-50 p-3 rounded-md text-[10px] overflow-x-auto border border-gray-200">
                         {JSON.stringify(generatedContent, null, 2)}
-                      </pre>
+                      </pre> */}
                     </div>
                   </div>
                 </div>
