@@ -15,7 +15,7 @@ connectToDb();
 
 const userRoutes = require('./routes/user.routes');
 const legalRoutes = require("./routes/legal.routes");
-const legalQARoutes = require('./routes/legalQA.routes');
+// const legalQARoutes = require('./routes/legalQA.routes');
 
 
 app.get('/', (req,res) => {
@@ -24,7 +24,7 @@ app.get('/', (req,res) => {
 
 app.use('/users',userRoutes);
 app.use('/legal',legalRoutes);
-app.use('/legal-qa', legalQARoutes);
+// app.use('/legal-qa', legalQARoutes);
 
 
 

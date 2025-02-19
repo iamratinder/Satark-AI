@@ -1,16 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const { authenticate } = require('../middlewares/auth.middleware');
-const { processLegalQuery, getQueryHistory , getQueryDetails } = require('../controllers/legalQA.controller');
+// const express = require('express');
+// const router = express.Router();
+// const { authenticate } = require('../middlewares/auth.middleware');
+// const { processLegalQuery, getQueryHistory , getQueryDetails } = require('../controllers/legalQA.controller');
 
-// All routes require authentication
-router.use(authenticate);
+// // All routes require authentication
+// router.use(authenticate);
 
-// Process a legal query
-router.post('/query', processLegalQuery);
+// // Process a legal query
+// router.post('/query', processLegalQuery);
 
-// Get user's query history
-router.get('/history', getQueryHistory);
+// // Get user's query history
+// router.get('/history', getQueryHistory);
 
-router.get('/query/:queryId', getQueryDetails);
-module.exports = router;
+// router.get('/query/:queryId', getQueryDetails);
+// module.exports = router;
