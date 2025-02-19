@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, AlertCircle, UserPlus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +13,8 @@ const Register = () => {
     password: ''
   });
   const [errors, setErrors] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { register, loading: isLoading } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,39 +39,16 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors([]);
-    setIsLoading(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Handle validation errors (array of messages)
-        if (Array.isArray(data)) {
-          setErrors(data);
-        } else {
-          throw new Error('Registration failed');
-        }
-        return;
-      }
-      
-      // Store token in localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Redirect to dashboard
+      await register(formData);
       navigate('/dashboard');
     } catch (err) {
-      setErrors([err.message]);
-    } finally {
-      setIsLoading(false);
+      if (err.errors) {
+        setErrors(err.errors.map(e => e.msg));
+      } else {
+        setErrors([err.message || 'Registration failed']);
+      }
     }
   };
 
@@ -196,9 +174,9 @@ const Register = () => {
         <div className="mt-6 text-center text-sm">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+            <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium">
               Log in
-            </a>
+            </Link>
           </p>
         </div>
       </div>

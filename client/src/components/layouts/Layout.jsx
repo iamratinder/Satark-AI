@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation, Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import {
   Menu,
   Book,
@@ -26,6 +26,7 @@ const Layout = () => {
   );
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout, user } = useAuth(); // Add useAuth hook
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,24 +41,8 @@ const Layout = () => {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("token"); // Get token from storage
-      if (!token) {
-        alert("You are not logged in!");
-        navigate("/login");
-        return;
-      }
-
-      await axios.post("/users/logout", {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      // Clear authentication data
-      localStorage.removeItem("token");
-
-      // Redirect to login page
-      navigate("/login");
+      await logout();
+      navigate('/login');
     } catch (error) {
       console.error("Logout failed:", error);
       alert("Failed to log out. Please try again.");
@@ -112,8 +97,10 @@ const Layout = () => {
                 <User className="w-5 h-5 text-gray-700" />
               </div>
               <div className="text-sm">
-                <p className="font-medium text-gray-900">Officer John Doe</p>
-                <p className="text-gray-600">Badge #12345</p>
+                <p className="font-medium text-gray-900">
+                  {user ? `${user.fullname.firstname} ${user.fullname.lastname}` : 'User'}
+                </p>
+                <p className="text-gray-600">{user?.email || 'Loading...'}</p>
               </div>
             </div>
           </div>
