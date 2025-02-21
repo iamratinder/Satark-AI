@@ -88,7 +88,11 @@ const Layout = () => {
 
   const menuItems = [
     { icon: Home, label: "Command Center", path: "/dashboard" },
-    { icon: MessageSquare, label: "Detective Engine", path: "/dashboard/qa" },
+    {
+      icon: MessageSquare,
+      label: "Detective Engine",
+      path: "/dashboard/investigation",
+    },
     {
       icon: FileText,
       label: "Document Generator",
