@@ -99,15 +99,14 @@ const LegalQA = () => {
     
     setIsLoading(true);
     setError('');
-    
+  
     try {
       const result = await legalApiService.submitLegalQuery(query);
-      setResponse(result);
-      fetchQueryHistory();
-      
-      if (isListening) {
-        resetTranscript();
-      }
+      setResponse({
+        answer: result.answer,
+        sources: result.sources,
+        confidence: result.confidence
+      });
     } catch (err) {
       console.error('Error querying legal AI:', err);
       setError(err.message || 'Failed to get response. Please try again.');

@@ -22,25 +22,23 @@ exports.processLegalQuery = async (req, res) => {
     if (validationError) {
       return res.status(400).json({ error: validationError });
     }
-    
+
     const result = await LegalQAService.getResponse(query, {
       userId: req.user.id,
       filters: filters || {}
     });
-    
+
     const savedQuery = await QueryLog.create({
       userId: req.user.id,
       queryType: 'legal-qa',
       query,
       response: result.answer,
       metadata: {
-        sources: result.sources,
-        confidence: result.confidence,
-        categories: filters?.categories || [],
-        sourceTypes: filters?.sources || []
+        sources: result.sources || [],
+        confidence: result.confidence || null,
       }
     });
-    
+
     return res.status(200).json({
       _id: savedQuery._id,
       query: savedQuery.query,
@@ -51,12 +49,10 @@ exports.processLegalQuery = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in LegalQA processing:', error);
-    return res.status(500).json({ 
-      error: 'Failed to process your legal question',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return res.status(500).json({ error: 'Failed to process your legal question' });
   }
 };
+
 
 exports.getQueryHistory = async (req, res) => {
   try {
