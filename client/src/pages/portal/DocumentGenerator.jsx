@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   Send,
@@ -11,7 +11,6 @@ import {
   FileWarning,
   AlertTriangle,
   Award,
-  FileCheck,
   FilePlus,
   Mail,
   MessageSquare,
@@ -27,9 +26,9 @@ const DocumentGenerator = () => {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [markdownContent, setMarkdownContent] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showExamples, setShowExamples] = useState(false);
   const [copied, setCopied] = useState(false);
   const [requestStatus, setRequestStatus] = useState(null);
+  const [initialPrompt, setInitialPrompt] = useState("");
 
   const documentTypes = [
     { id: "fir", label: "FIR", icon: FileText, color: "#2563eb" },
@@ -74,11 +73,6 @@ const DocumentGenerator = () => {
       color: "#9f1239",
     },
   ];
-
-  const handleSelectExample = (example) => {
-    setPrompt(example);
-    setShowExamples(false);
-  };
 
   const handleCopyContent = () => {
     if (generatedContent) {
@@ -162,6 +156,12 @@ const DocumentGenerator = () => {
     }
   };
 
+  useEffect(() => {
+    const selectedType =
+      documentTypes.find((d) => d.id === documentType)?.label || documentType;
+    setInitialPrompt(`Draft a ${selectedType} for ${prompt}`);
+  }, [documentType, prompt]);
+
   const handleGenerate = async () => {
     setIsLoading(true);
     setRequestStatus("Connecting to document generation API...");
@@ -169,10 +169,7 @@ const DocumentGenerator = () => {
     try {
       // Prepare the API request payload
       const requestPayload = {
-        input_value: `Draft a ${
-          documentTypes.find((d) => d.id === documentType)?.label ||
-          documentType
-        } for ${prompt}`,
+        input_value: initialPrompt,
         output_type: "chat",
         input_type: "chat",
         tweaks: {
@@ -306,7 +303,7 @@ const DocumentGenerator = () => {
 
                 <div className="relative">
                   <textarea
-                    value={prompt}
+                    value={prompt || initialPrompt || "No prompt generated yet"}
                     onChange={(e) => setPrompt(e.target.value)}
                     className="w-full h-32 p-3 bg-gray-50 border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs"
                     placeholder="Describe the details for your document..."
@@ -421,17 +418,6 @@ const DocumentGenerator = () => {
                         />
                       </div>
                     )}
-
-                    {/* JSON Preview Section */}
-                    <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
-                      {/* <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-gray-500" />
-                        JSON Response (API Output)
-                      </h4>
-                      <pre className="bg-gray-50 p-3 rounded-md text-[10px] overflow-x-auto border border-gray-200">
-                        {JSON.stringify(generatedContent, null, 2)}
-                      </pre> */}
-                    </div>
                   </div>
                 </div>
               ) : (
