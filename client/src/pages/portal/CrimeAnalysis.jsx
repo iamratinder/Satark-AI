@@ -35,7 +35,7 @@ import {
   Cell,
 } from "recharts";
 
-// Hardcoded sample data
+// Hardcoded sample data remains unchanged
 const SAMPLE_TREND_DATA = [
   { period: "Jan", count: 120, growthRate: 5 },
   { period: "Feb", count: 150, growthRate: 25 },
@@ -72,18 +72,41 @@ const SAMPLE_RECOMMENDATIONS = [
   },
 ];
 
+// Updated colors to match LegalKnowledge/DetectiveEngine theme
 const COLORS = [
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#8884d8",
-  "#4C9AFF",
-  "#FF5630",
-  "#36B37E",
-  "#0088FE",
+  "#06B6D4", // Cyan
+  "#3B82F6", // Blue
+  "#8B5CF6", // Violet
+  "#10B981", // Green
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Purple
+  "#3B82F6", // Blue
 ];
 
+// Background Effect Component from LegalKnowledge
+const BackgroundEffect = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute w-screen h-screen">
+      <div className="absolute w-96 h-96 -top-48 -left-48 bg-cyan-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute w-96 h-96 top-1/3 right-1/4 bg-violet-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+    </div>
+    <div
+      className="absolute inset-0"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: "40px 40px",
+      }}
+    />
+  </div>
+);
+
 const CrimeAnalysis = () => {
+  // All state declarations remain unchanged
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);
@@ -114,8 +137,8 @@ const CrimeAnalysis = () => {
     isMicrophoneAvailable,
   } = useSpeechRecognition({ commands });
 
+  // All useEffect hooks remain unchanged
   useEffect(() => {
-    // Load sample data on mount for testing
     setAnalysisResults({
       summary: "Sample analysis showing crime trends across regions.",
       keyInsights: ["Cybercrime up by 25%", "Mumbai shows highest risk"],
@@ -231,7 +254,8 @@ const CrimeAnalysis = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-2 text-sm text-indigo-400">
+          className="mt-2 text-sm text-cyan-400"
+        >
           Browser doesn't support speech recognition.
         </motion.div>
       );
@@ -240,7 +264,8 @@ const CrimeAnalysis = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-2 text-sm text-red-400">
+          className="mt-2 text-sm text-red-400"
+        >
           Please allow microphone access to use voice input.
         </motion.div>
       );
@@ -249,13 +274,14 @@ const CrimeAnalysis = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-2 flex items-center gap-2">
+          className="mt-2 flex items-center gap-2"
+        >
           <motion.div
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 0.5, repeat: Infinity }}
             className="w-2 h-2 rounded-full bg-red-500"
           />
-          <span className="text-sm text-indigo-300">Listening...</span>
+          <span className="text-sm text-cyan-400">Listening...</span>
         </motion.div>
       );
     return null;
@@ -272,8 +298,9 @@ const CrimeAnalysis = () => {
           className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
             timeRange === range
               ? "bg-cyan-600 text-white"
-              : "bg-indigo-800/50 text-indigo-200 hover:bg-indigo-800/70"
-          }`}>
+              : "bg-black/50 text-gray-300 hover:bg-cyan-500/20"
+          }`}
+        >
           {range === "last7days"
             ? "Last 7 Days"
             : range === "last30days"
@@ -291,17 +318,19 @@ const CrimeAnalysis = () => {
       initial={{ height: 0 }}
       animate={{ height: showFilters ? "auto" : 0 }}
       transition={{ duration: 0.3 }}
-      className="overflow-hidden">
-      <div className="bg-indigo-800/50 p-4 rounded-lg border border-indigo-700/50 mb-4">
+      className="overflow-hidden"
+    >
+      <div className="bg-black/50 backdrop-blur-xl p-4 rounded-lg border border-cyan-500/20 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-indigo-300 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Region
             </label>
             <select
               value={region}
               onChange={(e) => setRegion(e.target.value)}
-              className="w-full p-2 bg-gray-800 border border-indigo-600/50 rounded-lg text-indigo-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+              className="w-full p-2 bg-black/50 border border-cyan-500/20 rounded-lg text-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            >
               <option value="all">All Regions</option>
               <option value="north">Northern India</option>
               <option value="south">Southern India</option>
@@ -312,13 +341,14 @@ const CrimeAnalysis = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-indigo-300 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Crime Type
             </label>
             <select
               value={crimeType}
               onChange={(e) => setCrimeType(e.target.value)}
-              className="w-full p-2 bg-gray-800 border border-indigo-600/50 rounded-lg text-indigo-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+              className="w-full p-2 bg-black/50 border border-cyan-500/20 rounded-lg text-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            >
               <option value="all">All Crimes</option>
               <option value="cyber">Cyber Crime</option>
               <option value="financial">Financial Fraud</option>
@@ -342,7 +372,8 @@ const CrimeAnalysis = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 p-4 rounded-xl shadow-xl border border-indigo-700/50 mb-6">
+        className="bg-black/50 backdrop-blur-xl p-4 rounded-xl border border-cyan-500/20 mb-6"
+      >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-cyan-400">
             Crime Trend Analysis
@@ -351,7 +382,8 @@ const CrimeAnalysis = () => {
             onClick={exportAnalysis}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-1 text-sm bg-indigo-700 text-indigo-200 hover:bg-indigo-600 px-3 py-1.5 rounded-md transition-colors">
+            className="flex items-center gap-1 text-sm bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-3 py-1.5 rounded-md transition-colors"
+          >
             <Download className="w-4 h-4" />
             Export
           </motion.button>
@@ -360,8 +392,9 @@ const CrimeAnalysis = () => {
           <BarChart
             ref={chartRef}
             data={analysisResults.trendData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#4B5EAA" />
+            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#06B6D4" opacity={0.2} />
             <XAxis
               dataKey="period"
               angle={-45}
@@ -372,14 +405,14 @@ const CrimeAnalysis = () => {
             <YAxis stroke="#A5B4FC" />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#1F2937",
-                border: "none",
+                backgroundColor: "#000000",
+                border: "1px solid #06B6D4",
                 color: "#E0E7FF",
               }}
             />
             <Legend wrapperStyle={{ color: "#A5B4FC" }} />
-            <Bar dataKey="count" name="Incident Count" fill="#4C9AFF" />
-            <Bar dataKey="growthRate" name="Growth Rate (%)" fill="#36B37E" />
+            <Bar dataKey="count" name="Incident Count" fill="#06B6D4" />
+            <Bar dataKey="growthRate" name="Growth Rate (%)" fill="#3B82F6" />
           </BarChart>
         </ResponsiveContainer>
       </motion.div>
@@ -394,7 +427,8 @@ const CrimeAnalysis = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 p-4 rounded-xl shadow-xl border border-indigo-700/50 mb-6">
+        className="bg-black/50 backdrop-blur-xl p-4 rounded-xl border border-cyan-500/20 mb-6"
+      >
         <h3 className="text-lg font-medium text-cyan-400 mb-4">
           Crime Distribution
         </h3>
@@ -411,7 +445,8 @@ const CrimeAnalysis = () => {
               nameKey="name"
               label={({ name, percent }) =>
                 `${name}: ${(percent * 100).toFixed(0)}%`
-              }>
+              }
+            >
               {analysisResults.distributionData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
@@ -422,8 +457,8 @@ const CrimeAnalysis = () => {
             <Tooltip
               formatter={(value) => [`${value} cases`, "Count"]}
               contentStyle={{
-                backgroundColor: "#1F2937",
-                border: "none",
+                backgroundColor: "#000000",
+                border: "1px solid #06B6D4",
                 color: "#E0E7FF",
               }}
             />
@@ -442,35 +477,38 @@ const CrimeAnalysis = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 p-4 rounded-xl shadow-xl border border-indigo-700/50 mb-6">
+        className="bg-black/50 backdrop-blur-xl p-4 rounded-xl border border-cyan-500/20 mb-6"
+      >
         <h3 className="text-lg font-medium text-cyan-400 mb-4">
           Crime Hotspot Analysis
         </h3>
-        <div className="border border-indigo-700/50 rounded-lg overflow-hidden">
-          <div className="p-4 bg-indigo-800/50 border-b border-indigo-700/30">
-            <h4 className="font-medium text-indigo-200">Top High-Risk Areas</h4>
+        <div className="border border-cyan-500/20 rounded-lg overflow-hidden">
+          <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-cyan-500/20">
+            <h4 className="font-medium text-gray-300">Top High-Risk Areas</h4>
           </div>
-          <ul className="divide-y divide-indigo-700/30">
+          <ul className="divide-y divide-cyan-500/20">
             {analysisResults.hotspotData.map((area, index) => (
               <motion.li
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-4 flex items-start gap-3">
+                className="p-4 flex items-start gap-3"
+              >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     index === 0
-                      ? "bg-red-900/50 text-red-400"
+                      ? "bg-red-500/20 text-red-400"
                       : index === 1
-                      ? "bg-orange-900/50 text-orange-400"
-                      : "bg-yellow-900/50 text-yellow-400"
-                  }`}>
+                      ? "bg-orange-500/20 text-orange-400"
+                      : "bg-yellow-500/20 text-yellow-400"
+                  }`}
+                >
                   {index + 1}
                 </div>
                 <div>
-                  <p className="font-medium text-indigo-100">{area.location}</p>
-                  <div className="flex gap-6 mt-1 text-sm text-indigo-300">
+                  <p className="font-medium text-gray-300">{area.location}</p>
+                  <div className="flex gap-6 mt-1 text-sm text-gray-400">
                     <span className="flex items-center gap-1">
                       <AlertTriangle className="w-4 h-4" />
                       Risk: {area.riskScore}/10
@@ -481,7 +519,7 @@ const CrimeAnalysis = () => {
                     </span>
                   </div>
                   <div className="mt-2">
-                    <div className="text-xs font-medium mb-1 flex justify-between text-indigo-400">
+                    <div className="text-xs font-medium mb-1 flex justify-between text-cyan-400">
                       <span>Risk level</span>
                       <span
                         className={
@@ -490,7 +528,8 @@ const CrimeAnalysis = () => {
                             : area.riskScore >= 6
                             ? "text-orange-400"
                             : "text-yellow-400"
-                        }>
+                        }
+                      >
                         {area.riskScore >= 8
                           ? "Critical"
                           : area.riskScore >= 6
@@ -498,7 +537,7 @@ const CrimeAnalysis = () => {
                           : "Moderate"}
                       </span>
                     </div>
-                    <div className="w-full bg-indigo-700/50 rounded-full h-2">
+                    <div className="w-full bg-cyan-500/10 rounded-full h-2">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${area.riskScore * 10}%` }}
@@ -530,7 +569,8 @@ const CrimeAnalysis = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 p-4 rounded-xl shadow-xl border border-indigo-700/50 mb-6">
+        className="bg-black/50 backdrop-blur-xl p-4 rounded-xl border border-cyan-500/20 mb-6"
+      >
         <h3 className="text-lg font-medium text-cyan-400 mb-4">
           Action Recommendations
         </h3>
@@ -541,18 +581,17 @@ const CrimeAnalysis = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex items-start gap-3 p-3 bg-indigo-800/50 rounded-lg border border-indigo-700/30">
-              <div className="w-8 h-8 rounded-full bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
+              className="flex items-start gap-3 p-3 bg-cyan-500/5 rounded-lg border border-cyan-500/20"
+            >
+              <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
                 <RefreshCw className="w-4 h-4 text-cyan-400" />
               </div>
               <div>
-                <p className="font-medium text-indigo-100">{rec.title}</p>
-                <p className="text-sm text-indigo-300 mt-1">
-                  {rec.description}
-                </p>
+                <p className="font-medium text-gray-300">{rec.title}</p>
+                <p className="text-sm text-gray-400 mt-1">{rec.description}</p>
                 {rec.metrics && (
-                  <div className="mt-2 bg-indigo-900/50 p-2 rounded border border-indigo-700/30">
-                    <p className="text-xs text-indigo-400">Expected impact:</p>
+                  <div className="mt-2 bg-cyan-500/10 p-2 rounded border border-cyan-500/20">
+                    <p className="text-xs text-gray-400">Expected impact:</p>
                     <p className="text-sm font-medium text-cyan-400">
                       {rec.metrics}
                     </p>
@@ -582,252 +621,267 @@ const CrimeAnalysis = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900">
+    <div className="relative min-h-full">
+      <BackgroundEffect />
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl border border-indigo-700/50 mb-6">
-        <div className="p-6 bg-gradient-to-r from-indigo-900 to-gray-800">
-          <h2 className="text-xl font-semibold flex items-center gap-2 text-cyan-400">
-            <BarChart3 className="w-6 h-6" />
-            Crime Matrix
-          </h2>
-          <p className="text-indigo-300 mt-2 text-sm">
-            Uncover crime patterns, identify high-risk zones, and predict
-            emerging threats with AI-driven insights.
-          </p>
-        </div>
-
-        <div className="p-6">
-          <div className="relative">
-            <motion.input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., Analyze cybercrime trends in Delhi over the last 3 months"
-              className="w-full p-4 pr-32 bg-gray-800 border border-indigo-600/50 rounded-lg text-indigo-100 placeholder-indigo-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-              onKeyPress={(e) => e.key === "Enter" && handleAnalysis()}
-              whileFocus={{ boxShadow: "0 0 15px rgba(34, 211, 238, 0.3)" }}
-            />
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
-              {browserSupportsSpeechRecognition && (
-                <motion.button
-                  onClick={toggleListening}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`p-2 rounded-lg transition-all ${
-                    isListening
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-indigo-700 hover:bg-indigo-600 text-cyan-300"
-                  }`}
-                  title={
-                    isListening ? "Stop voice input" : "Start voice input"
-                  }>
-                  {isListening ? (
-                    <MicOff className="w-5 h-5" />
-                  ) : (
-                    <Mic className="w-5 h-5" />
-                  )}
-                </motion.button>
-              )}
-              <motion.button
-                onClick={() => setShowFilters(!showFilters)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-indigo-700 text-cyan-300 rounded-lg hover:bg-indigo-600 transition-colors"
-                title="Show filters">
-                {showFilters ? (
-                  <ChevronUp className="w-5 h-5" />
-                ) : (
-                  <ChevronDown className="w-5 h-5" />
-                )}
-              </motion.button>
-              <motion.button
-                onClick={handleAnalysis}
-                disabled={isLoading || !query.trim()}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">
-                <BarChart3 className="w-5 h-5" />
-              </motion.button>
-            </div>
+        className="relative z-10 max-w-6xl mx-auto p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-black/50 backdrop-blur-xl rounded-xl border border-cyan-500/20 mb-6"
+        >
+          <div className="p-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+            <h2 className="text-xl font-semibold flex items-center gap-2 text-cyan-400">
+              <BarChart3 className="w-6 h-6" />
+              Crime Matrix
+            </h2>
+            <p className="text-gray-400 mt-2 text-sm">
+              Uncover crime patterns, identify high-risk zones, and predict
+              emerging threats with AI-driven insights.
+            </p>
           </div>
 
-          {renderVoiceStatus()}
-          {renderFilters()}
-
-          <AnimatePresence>
-            {isListening && transcript && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="mt-4 p-3 bg-indigo-800/50 border border-indigo-700 rounded-lg">
-                <p className="text-sm text-cyan-300">
-                  <span className="font-medium">Current transcript:</span>{" "}
-                  {transcript}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300 flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                <p>{error}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-center items-center my-8">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"
+          <div className="p-6">
+            <div className="relative">
+              <motion.input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="e.g., Analyze cybercrime trends in Delhi over the last 3 months"
+                className="w-full p-4 pr-32 bg-black/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                onKeyPress={(e) => e.key === "Enter" && handleAnalysis()}
+                whileFocus={{ boxShadow: "0 0 15px rgba(6, 182, 212, 0.3)" }}
               />
-            </motion.div>
-          )}
-
-          {analysisResults && !isLoading && (
-            <div className="mt-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-indigo-800/50 p-6 rounded-lg border border-indigo-700/30 mb-6">
-                <h3 className="text-lg font-medium text-cyan-400 mb-2">
-                  Analysis Overview
-                </h3>
-                <p className="text-indigo-200">{analysisResults.summary}</p>
-                {analysisResults.keyInsights && (
-                  <div className="mt-4">
-                    <h4 className="font-medium text-cyan-400 mb-2">
-                      Key Insights
-                    </h4>
-                    <ul className="space-y-1 text-indigo-300">
-                      {analysisResults.keyInsights.map((insight, index) => (
-                        <motion.li
-                          key={index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="flex items-start gap-2">
-                          <TrendingUp className="w-5 h-5 mt-0.5 flex-shrink-0 text-cyan-500" />
-                          <span>{insight}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </motion.div>
-
-              <div className="flex border-b border-indigo-700/30 mb-6 overflow-x-auto">
-                {[
-                  { id: "trends", icon: TrendingUp, label: "Crime Trends" },
-                  {
-                    id: "distribution",
-                    icon: PieChartIcon,
-                    label: "Crime Distribution",
-                  },
-                  { id: "hotspots", icon: Map, label: "Risk Hotspots" },
-                  {
-                    id: "recommendations",
-                    icon: AlertTriangle,
-                    label: "Recommendations",
-                  },
-                ].map((tab) => (
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                {browserSupportsSpeechRecognition && (
                   <motion.button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`px-4 py-2 border-b-2 font-medium text-sm whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? "border-cyan-500 text-cyan-400"
-                        : "border-transparent text-indigo-300 hover:text-cyan-300 hover:border-indigo-600/50"
-                    }`}>
-                    <div className="flex items-center gap-1">
-                      <tab.icon className="w-4 h-4" />
-                      {tab.label}
-                    </div>
+                    onClick={toggleListening}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`p-2 rounded-lg transition-all ${
+                      isListening
+                        ? "bg-red-500/20 text-red-400 border border-red-500/20"
+                        : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/20"
+                    }`}
+                    title={isListening ? "Stop voice input" : "Start voice input"}
+                  >
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5" />
+                    )}
                   </motion.button>
-                ))}
+                )}
+                <motion.button
+                  onClick={() => setShowFilters(!showFilters)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/30 transition-colors"
+                  title="Show filters"
+                >
+                  {showFilters ? (
+                    <ChevronUp className="w-5 h-5" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5" />
+                  )}
+                </motion.button>
+                <motion.button
+                  onClick={handleAnalysis}
+                  disabled={isLoading || !query.trim()}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:bg-cyan-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                </motion.button>
               </div>
-
-              {renderTabContent()}
             </div>
-          )}
-        </div>
-      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl border border-indigo-700/50">
-        <div className="p-6 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800">
-          <h2 className="text-xl font-semibold flex items-center gap-2 text-cyan-400">
-            <Clock className="w-6 h-6" />
-            Analysis Archives
-          </h2>
-        </div>
+            {renderVoiceStatus()}
+            {renderFilters()}
 
-        <div className="p-6">
-          {analysisHistory.length === 0 ? (
-            <p className="text-indigo-400 text-center py-4">
-              No analysis archives yet.
-            </p>
-          ) : (
-            <ul className="divide-y divide-indigo-700/30">
-              {analysisHistory.map((item) => (
-                <motion.li
-                  key={item._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  whileHover={{ backgroundColor: "rgba(55, 65, 81, 0.5)" }}
-                  className="py-4 cursor-pointer transition-colors px-2 rounded"
-                  onClick={() => handleHistoryItemClick(item._id)}>
-                  <div className="flex items-start gap-3">
-                    <BarChart3 className="w-5 h-5 text-cyan-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-indigo-100">
-                        {item.query}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="text-xs bg-indigo-800 text-indigo-300 px-2 py-0.5 rounded">
-                          {item.timeRange}
-                        </span>
-                        {item.region !== "all" && (
-                          <span className="text-xs bg-cyan-900 text-cyan-300 px-2 py-0.5 rounded">
-                            Region: {item.region}
-                          </span>
-                        )}
-                        {item.crimeType !== "all" && (
-                          <span className="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded">
-                            Crime: {item.crimeType}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-indigo-400 mt-1">
-                        {new Date(item.timestamp).toLocaleString()}
-                      </p>
+            <AnimatePresence>
+              {isListening && transcript && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-lg"
+                >
+                  <p className="text-sm text-cyan-400">
+                    <span className="font-medium">Current transcript:</span>{" "}
+                    {transcript}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 flex items-start gap-2"
+                >
+                  <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                  <p>{error}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex justify-center items-center my-8"
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"
+                />
+              </motion.div>
+            )}
+
+            {analysisResults && !isLoading && (
+              <div className="mt-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-black/50 backdrop-blur-xl p-6 rounded-lg border border-cyan-500/20 mb-6"
+                >
+                  <h3 className="text-lg font-medium text-cyan-400 mb-2">
+                    Analysis Overview
+                  </h3>
+                  <p className="text-gray-300">{analysisResults.summary}</p>
+                  {analysisResults.keyInsights && (
+                    <div className="mt-4">
+                      <h4 className="font-medium text-cyan-400 mb-2">
+                        Key Insights
+                      </h4>
+                      <ul className="space-y-1 text-gray-400">
+                        {analysisResults.keyInsights.map((insight, index) => (
+                          <motion.li
+                            key={index}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="flex items-start gap-2"
+                          >
+                            <TrendingUp className="w-5 h-5 mt-0.5 flex-shrink-0 text-cyan-400" />
+                            <span>{insight}</span>
+                          </motion.li>
+                        ))}
+                      </ul>
                     </div>
-                  </div>
-                </motion.li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  )}
+                </motion.div>
+
+                <div className="flex border-b border-cyan-500/20 mb-6 overflow-x-auto">
+                  {[
+                    { id: "trends", icon: TrendingUp, label: "Crime Trends" },
+                    {
+                      id: "distribution",
+                      icon: PieChartIcon,
+                      label: "Crime Distribution",
+                    },
+                    { id: "hotspots", icon: Map, label: "Risk Hotspots" },
+                    {
+                      id: "recommendations",
+                      icon: AlertTriangle,
+                      label: "Recommendations",
+                    },
+                  ].map((tab) => (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-4 py-2 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === tab.id
+                          ? "border-cyan-500 text-cyan-400"
+                          : "border-transparent text-gray-300 hover:text-cyan-400 hover:border-cyan-500/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1">
+                        <tab.icon className="w-4 h-4" />
+                        {tab.label}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+
+                {renderTabContent()}
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-black/50 backdrop-blur-xl rounded-xl border border-cyan-500/20"
+        >
+          <div className="p-6 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+            <h2 className="text-xl font-semibold flex items-center gap-2 text-cyan-400">
+              <Clock className="w-6 h-6" />
+              Analysis Archives
+            </h2>
+          </div>
+
+          <div className="p-6">
+            {analysisHistory.length === 0 ? (
+              <p className="text-gray-400 text-center py-4">
+                No analysis archives yet.
+              </p>
+            ) : (
+              <ul className="divide-y divide-cyan-500/20">
+                {analysisHistory.map((item) => (
+                  <motion.li
+                    key={item._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    whileHover={{ backgroundColor: "rgba(6, 182, 212, 0.05)" }}
+                    className="py-4 cursor-pointer transition-colors px-2 rounded"
+                    onClick={() => handleHistoryItemClick(item._id)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <BarChart3 className="w-5 h-5 text-cyan-400 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-gray-300">{item.query}</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <span className="text-xs bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded">
+                            {item.timeRange}
+                          </span>
+                          {item.region !== "all" && (
+                            <span className="text-xs bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded">
+                              Region: {item.region}
+                            </span>
+                          )}
+                          {item.crimeType !== "all" && (
+                            <span className="text-xs bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded">
+                              Crime: {item.crimeType}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(item.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );
