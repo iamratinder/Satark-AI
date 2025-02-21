@@ -14,7 +14,7 @@ import Dashboard from "./pages/portal/Dashboard";
 import LegalKnowledge from "./pages/portal/LegalKnowledge";
 import DocumentGenerator from "./pages/portal/DocumentGenerator";
 import DetectiveEngine from "./pages/portal/DetectiveEngine";
-import CrimeAnalysis from "./pages/portal/CrimeAnalysis";
+import SurakshaSetu from "./pages/portal/SurakshaSetu";
 
 const App = () => {
   return (
@@ -30,7 +30,7 @@ const App = () => {
           <Route path="knowledge" element={<LegalKnowledge />} />
           <Route path="generate" element={<DocumentGenerator />} />
           <Route path="investigation" element={<DetectiveEngine />} />
-          <Route path="analysis" element={<CrimeAnalysis />} />
+          <Route path="analysis" element={<SurakshaSetu />} />
         </Route>
       </Route>
 
