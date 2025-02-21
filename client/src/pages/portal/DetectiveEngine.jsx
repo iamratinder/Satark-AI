@@ -79,10 +79,6 @@ const DetectiveEngine = () => {
   );
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      setError("Please log in to view query history.");
-      return;
-    }
     fetchQueryHistory();
     if (queryInputRef.current) queryInputRef.current.focus();
   }, []);
