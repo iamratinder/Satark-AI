@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   FileText,
   Send,
-  Download,
-  Copy,
-  CheckCircle,
   Clipboard,
   FileSearch,
   Shield,
@@ -16,17 +13,13 @@ import {
   MessageSquare,
   Briefcase,
 } from "lucide-react";
-import { marked } from "marked";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+import InteractiveDocumentDisplay from "./InteractiveDocumentDisplay";
 
 const DocumentGenerator = () => {
   const [prompt, setPrompt] = useState("");
   const [documentType, setDocumentType] = useState("fir");
   const [generatedContent, setGeneratedContent] = useState(null);
-  const [markdownContent, setMarkdownContent] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [requestStatus, setRequestStatus] = useState(null);
   const [initialPrompt, setInitialPrompt] = useState("");
 
@@ -74,18 +67,16 @@ const DocumentGenerator = () => {
     },
   ];
 
-  const handleCopyContent = () => {
+  const handleSaveContent = (newContent) => {
     if (generatedContent) {
-      navigator.clipboard.writeText(JSON.stringify(generatedContent, null, 2));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setGeneratedContent({
+        ...generatedContent,
+        content: {
+          ...generatedContent.content,
+          markdown: newContent,
+        },
+      });
     }
-  };
-
-  // Convert markdown to HTML for display
-  const renderMarkdown = (markdown) => {
-    if (!markdown) return "";
-    return { __html: marked(markdown) };
   };
 
   const extractMarkdownFromResponse = (response) => {
@@ -93,67 +84,6 @@ const DocumentGenerator = () => {
     const markdownRegex = /```markdown\s*([\s\S]*?)\s*```/;
     const match = markdownRegex.exec(response.text);
     return match ? match[1] : null;
-  };
-
-  const handleDownloadPDF = async () => {
-    const contentElement = document.getElementById("document-content");
-    if (!contentElement) return;
-
-    setRequestStatus("Generating PDF...");
-
-    try {
-      // Create a clean clone of the content for PDF generation
-      const clone = contentElement.cloneNode(true);
-      clone.style.width = "793px"; // A4 width at 96 DPI
-      clone.style.padding = "40px";
-      clone.style.backgroundColor = "white";
-      clone.style.position = "absolute";
-      clone.style.left = "-9999px";
-      document.body.appendChild(clone);
-
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        backgroundColor: "#FFFFFF",
-      });
-
-      document.body.removeChild(clone);
-
-      // Create PDF
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-      // Metadata for editability
-      pdf.setProperties({
-        title: `${documentType.toUpperCase()} - ${new Date().toISOString()}`,
-        subject: prompt,
-        author: "Document Generator",
-        keywords: `${documentType}, legal document, automated`,
-        creator: "Document Generator System",
-        producer: "Document Generator",
-      });
-
-      // Download the PDF
-      pdf.save(`${documentType}-document-${Date.now()}.pdf`);
-      setRequestStatus("PDF downloaded successfully");
-
-      setTimeout(() => setRequestStatus(null), 3000);
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      setRequestStatus("Error generating PDF. Please try again.");
-      setTimeout(() => setRequestStatus(null), 3000);
-    }
   };
 
   useEffect(() => {
@@ -201,10 +131,6 @@ const DocumentGenerator = () => {
       const responseMessage =
         responseData.outputs[0].outputs[0].results.message;
       const markdownText = extractMarkdownFromResponse(responseMessage);
-
-      if (markdownText) {
-        setMarkdownContent(markdownText);
-      }
 
       // Create standardized response format for the UI
       const formattedResponse = {
@@ -345,105 +271,14 @@ const DocumentGenerator = () => {
 
         {/* Right Panel - Output */}
         <div className="md:col-span-4">
-          <div className="bg-white rounded-md border border-gray-300 overflow-hidden h-full shadow-sm">
-            <div className="px-3 py-2 border-b border-gray-300 bg-gray-50 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    generatedContent ? "bg-green-500" : "bg-gray-400"
-                  }`}></div>
-                <h2 className="text-xs font-medium text-gray-700">
-                  {generatedContent ? "GENERATED OUTPUT" : "OUTPUT PREVIEW"}
-                </h2>
-                {generatedContent && (
-                  <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                    {documentTypes.find((t) => t.id === documentType)?.label}
-                  </span>
-                )}
-              </div>
-
-              {generatedContent && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={handleCopyContent}
-                    className="p-1 text-gray-500 cursor-pointer hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-                    title="Copy JSON">
-                    {copied ? (
-                      <CheckCircle className="w-3 h-3 text-green-500" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="p-1 text-gray-500 cursor-pointer hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-                    title="Download PDF">
-                    <Download className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              {generatedContent ? (
-                <div
-                  className="h-[600px] overflow-y-auto p-4"
-                  id="document-content">
-                  <div className="flex flex-col gap-4">
-                    {/* Document Header */}
-                    <div className="pb-3 border-b border-gray-200">
-                      <h3 className="text-sm font-medium text-gray-800 mb-1">
-                        {generatedContent.content.header.title}
-                      </h3>
-                      <div className="flex items-center gap-3 text-[10px] text-gray-500">
-                        <span>
-                          REF: {generatedContent.content.header.number}
-                        </span>
-                        <span>
-                          DATE: {generatedContent.content.header.date}
-                        </span>
-                        <span>
-                          ID: {generatedContent.metadata.reference_id}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Markdown Content */}
-                    {markdownContent && (
-                      <div className="prose prose-sm max-w-none text-gray-800">
-                        <div
-                          dangerouslySetInnerHTML={renderMarkdown(
-                            markdownContent
-                          )}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-[600px] text-center text-gray-500 p-4">
-                  <div className="w-12 h-12 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-gray-300" />
-                  </div>
-                  <h3 className="text-xs font-medium text-gray-700 mb-2">
-                    No Document Generated
-                  </h3>
-                  <p className="max-w-md text-[11px] text-gray-500 mb-4">
-                    Select document type and provide details to generate a
-                    document. The output will be provided in Markdown format and
-                    can be converted to PDF.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {generatedContent && (
-              <div className="px-3 py-2 border-t border-gray-300 bg-gray-50 flex items-center justify-between text-[10px] text-gray-500">
-                <div>Format: Markdown → PDF conversion (editable)</div>
-                <div>Generated: {new Date().toLocaleTimeString()}</div>
-              </div>
-            )}
-          </div>
+          <InteractiveDocumentDisplay
+            content={generatedContent}
+            documentType={
+              documentTypes.find((d) => d.id === documentType)?.label
+            }
+            onSave={handleSaveContent}
+            requestStatus={requestStatus}
+          />
         </div>
       </div>
     </div>
