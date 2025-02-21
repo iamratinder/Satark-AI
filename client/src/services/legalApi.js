@@ -117,7 +117,7 @@ const legalApiService = {
   //Legal Consultancy
   async submitLegalQuery(query, filters = {}) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/legal-qa/query`, {
+      const response = await fetch(`${API_BASE_URL}/qa`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
