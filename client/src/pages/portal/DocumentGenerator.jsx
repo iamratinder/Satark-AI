@@ -248,7 +248,7 @@ const DocumentGenerator = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto bg-gray-100">
+    <div className="max-w-7xl mx-auto text-black bg-gray-100">
       <div className="grid md:grid-cols-7 gap-4">
         {/* Left Panel - Input */}
         <div className="md:col-span-3">
@@ -305,7 +305,7 @@ const DocumentGenerator = () => {
                   <textarea
                     value={prompt || initialPrompt || "No prompt generated yet"}
                     onChange={(e) => setPrompt(e.target.value)}
-                    className="w-full h-32 p-3 bg-gray-50 border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs"
+                    className="w-full h-32 p-3 text-black bg-gray-50 border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs"
                     placeholder="Describe the details for your document..."
                   />
                 </div>
