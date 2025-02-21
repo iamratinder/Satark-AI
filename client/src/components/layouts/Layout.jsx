@@ -98,7 +98,12 @@ const Layout = () => {
       label: "Document Generator",
       path: "/dashboard/generate",
     },
-    { icon: BookOpen, label: "Legal Knowledge", path: "/dashboard/knowledge" },
+    {
+      icon: BookOpen,
+      label: "Legal Knowledge",
+      path: "/dashboard/knowledge",
+      isPro: true,
+    },
     { icon: BarChart2, label: "Suraksha Setu", path: "/dashboard/analysis" },
   ];
 
@@ -117,8 +122,7 @@ const Layout = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setSidebarOpen((prev) => !prev)}
-            className="p-2 cursor-pointer rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
-          >
+            className="p-2 cursor-pointer rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors">
             {isSidebarOpen ? (
               <ChevronLeft className="w-5 h-5" />
             ) : (
@@ -152,8 +156,7 @@ const Layout = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleFullscreen}
-              className="p-2 cursor-pointer rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
-            >
+              className="p-2 cursor-pointer rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors">
               {isFullscreen ? (
                 <Minimize2 className="w-5 h-5" />
               ) : (
@@ -187,8 +190,7 @@ const Layout = () => {
     <aside
       className={`fixed top-0 left-0 z-30 h-screen bg-black/95 backdrop-blur-xl border-r border-cyan-500/20 transition-all duration-300 ${
         isSidebarOpen ? "w-72" : "w-20"
-      }`}
-    >
+      }`}>
       <div className="p-6 flex items-center gap-3 border-b border-cyan-500/20">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
           <Shield className="w-6 h-6 text-white" />
@@ -196,8 +198,7 @@ const Layout = () => {
         {isSidebarOpen && (
           <Link
             to="/"
-            className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
-          >
+            className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
             SATARK AI
           </Link>
         )}
@@ -216,11 +217,24 @@ const Layout = () => {
                     ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
                     : "text-gray-400 hover:bg-cyan-500/10 hover:text-cyan-400"
                 }`
-              }
-            >
+              }>
               <item.icon className="w-5 h-5" />
               {isSidebarOpen && (
-                <span className="font-medium tracking-wide">{item.label}</span>
+                <div className="flex items-center">
+                  <span className="font-medium tracking-wide">
+                    {item.label}
+                  </span>
+                  {item.isPro && (
+                    <span className="ml-2 px-1.5 py-0.5 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-black rounded-md">
+                      PRO
+                    </span>
+                  )}
+                </div>
+              )}
+              {!isSidebarOpen && item.isPro && (
+                <span className="absolute top-1 right-1 px-1 py-0.5 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-black rounded-md">
+                  PRO
+                </span>
               )}
             </NavLink>
           ))}
@@ -230,8 +244,7 @@ const Layout = () => {
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-cyan-500/20">
         <button
           onClick={handleLogout}
-          className="w-full cursor-pointer flex items-center gap-4 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
-        >
+          className="w-full cursor-pointer flex items-center gap-4 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all">
           <LogOut className="w-5 h-5" />
           {isSidebarOpen && <span className="font-medium">Sign Out</span>}
         </button>
@@ -246,8 +259,7 @@ const Layout = () => {
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
           isSidebarOpen && !isMobile ? "ml-72" : "ml-20"
-        }`}
-      >
+        }`}>
         <Navbar />
 
         <main className="flex-1 p-8 relative">
