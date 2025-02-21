@@ -87,7 +87,7 @@ const Layout = () => {
   };
 
   const menuItems = [
-    { icon: Home, label: "Command Center", path: "/dashboard" },
+    { icon: Home, label: "Dashboard", path: "/dashboard" },
     {
       icon: MessageSquare,
       label: "Detective Engine",
