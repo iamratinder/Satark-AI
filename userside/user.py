@@ -2,8 +2,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
-import requests
-import json
 import os
 from dotenv import load_dotenv
 from typing import Optional
@@ -44,24 +42,6 @@ class Response(BaseModel):
     status: str
     error: Optional[str] = None
 
-def get_rag_response(query: str) -> str:
-    """
-    Get response from the RAG API
-    """
-    try:
-        api_url = "https://satark-ai-f0xr.onrender.com/investigation"
-        response = requests.post(
-            api_url,
-            json={"question": query}
-        )
-        response.raise_for_status()
-        return response.json()["answer"]
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Error calling RAG API: {str(e)}"
-        )
-
 def get_enhanced_response(user_query: str) -> str:
     """
     Get enhanced response using Groq
@@ -81,13 +61,10 @@ def get_enhanced_response(user_query: str) -> str:
             api_key=api_key
         )
         
-        # Get initial RAG response
-        rag_response = get_rag_response(user_query)
-        
         # Create prompt template
         prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a helpful assistant specializing in providing accurate and actionable advice about corruption and legal matters in India. 
-            Given a user query and reference information:
+            Given a user query:
             1. Analyze the situation carefully
             2. Provide immediate actionable steps
             3. Include relevant legal rights and protections
@@ -102,8 +79,6 @@ def get_enhanced_response(user_query: str) -> str:
             
             Be concise but thorough. Focus on practical, safe actions the user can take."""),
             ("user", f"""User Query: {user_query}
-            
-            Reference Information: {rag_response}
             
             Provide a clear, structured response.""")
         ])
