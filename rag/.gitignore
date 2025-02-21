@@ -1,7 +1,6 @@
 .env
 legal/
 
-upload_pdf.py
-upload_text.py
+db_manager.py
 
 Database_content
