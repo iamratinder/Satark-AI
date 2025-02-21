@@ -1,6 +1,9 @@
+// services/legalApi.js
 const API_BASE_URL = 'https://satark-ai-f0xr.onrender.com';
 
 const legalApiService = {
+
+  //Legal knowledge
   async searchLegalKnowledge(query) {
     try {
       const response = await fetch(`${API_BASE_URL}/qa`, {
@@ -108,7 +111,111 @@ const legalApiService = {
       console.error('Error getting search details:', error);
       throw error;
     }
+  },
+
+
+  //Legal Consultancy
+  async submitLegalQuery(query, filters = {}) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/legal-qa/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ query, filters }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to process legal query');
+      }
+
+      const data = await response.json();
+      
+      // Transform the response to match the expected format in LegalQA.jsx
+      return {
+        _id: data._id,
+        query: data.query,
+        answer: data.answer,
+        sources: data.sources?.map(source => ({
+          title: source.title || '',
+          citation: source.citation || '',
+          excerpt: source.excerpt || '',
+          relevance: source.relevance || null
+        })) || [],
+        confidence: data.confidence,
+        timestamp: data.timestamp
+      };
+    } catch (error) {
+      console.error('Legal Query Error:', error);
+      throw error;
+    }
+  },
+
+  async getLegalQAHistory() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/legal-qa/history`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch query history');
+      }
+
+      const data = await response.json();
+      
+      // Transform history items to match the expected format
+      return data.map(item => ({
+        _id: item._id,
+        query: item.query,
+        answer: item.response,
+        sources: item.metadata?.sources || [],
+        confidence: item.metadata?.confidence,
+        timestamp: item.createdAt
+      }));
+    } catch (error) {
+      console.error('Error getting query history:', error);
+      throw error;
+    }
+  },
+
+  async getLegalQADetails(queryId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/legal-qa/query/${queryId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch query details');
+      }
+
+      const data = await response.json();
+      
+      // Transform the response to match the expected format
+      return {
+        query: data.query,
+        answer: data.answer,
+        sources: data.sources?.map(source => ({
+          title: source.title || '',
+          citation: source.citation || '',
+          excerpt: source.excerpt || '',
+          relevance: source.relevance || null
+        })) || [],
+        confidence: data.confidence,
+        timestamp: data.timestamp,
+        filters: data.filters || {}
+      };
+    } catch (error) {
+      console.error('Error getting query details:', error);
+      throw error;
+    }
   }
 };
 
 export default legalApiService;
+
