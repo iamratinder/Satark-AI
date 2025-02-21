@@ -46,21 +46,22 @@ const Features = () => {
   const features = [
     {
       icon: Scale,
-      title: "Vivad Mitra",
+      title: "Detective Engine",
       description:
         "AI-powered case prediction and investigation tool providing legal insights, pattern recognition, and procedural guidance based on historical data.",
       delay: 0.1,
     },
     {
       icon: FileText,
-      title: "Kanoon Patr",
+      title: "Document Generator",
+
       description:
         "Automated legal document generation system with multi-language support and context-aware legal adjustments for various document types.",
       delay: 0.2,
     },
     {
       icon: Book,
-      title: "Nyay Darpan",
+      title: "Legal Knowledge",
       description:
         "Real-time legal knowledge retrieval system with dynamic updates from Indian legal portals and natural language querying capabilities.",
       delay: 0.3,

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText,
   Send,
@@ -35,14 +34,44 @@ const DocumentGenerator = () => {
     { id: "fir", label: "FIR", icon: FileText, color: "#2563eb" },
     { id: "affidavit", label: "Affidavit", icon: Clipboard, color: "#059669" },
     { id: "warrant", label: "Warrant", icon: Shield, color: "#dc2626" },
-    { id: "chargesheet", label: "Charge Sheet", icon: Briefcase, color: "#0284c7" },
-    { id: "summary", label: "Case Summary", icon: FileSearch, color: "#7c3aed" },
+    {
+      id: "chargesheet",
+      label: "Charge Sheet",
+      icon: Briefcase,
+      color: "#0284c7",
+    },
+    {
+      id: "summary",
+      label: "Case Summary",
+      icon: FileSearch,
+      color: "#7c3aed",
+    },
     { id: "summons", label: "Summons", icon: Mail, color: "#ea580c" },
-    { id: "testimony", label: "Testimony", icon: MessageSquare, color: "#8b5cf6" },
+    {
+      id: "testimony",
+      label: "Testimony",
+      icon: MessageSquare,
+      color: "#8b5cf6",
+    },
     { id: "subpoena", label: "Subpoena", icon: Award, color: "#b45309" },
-    { id: "pleaagreement", label: "Plea Agreement", icon: FilePlus, color: "#16a34a" },
-    { id: "legalnotice", label: "Legal Notice", icon: AlertTriangle, color: "#db2777" },
-    { id: "indictment", label: "Indictment", icon: FileWarning, color: "#9f1239" },
+    {
+      id: "pleaagreement",
+      label: "Plea Agreement",
+      icon: FilePlus,
+      color: "#16a34a",
+    },
+    {
+      id: "legalnotice",
+      label: "Legal Notice",
+      icon: AlertTriangle,
+      color: "#db2777",
+    },
+    {
+      id: "indictment",
+      label: "Indictment",
+      icon: FileWarning,
+      color: "#9f1239",
+    },
   ];
 
   const handleCopyContent = () => {
@@ -53,12 +82,14 @@ const DocumentGenerator = () => {
     }
   };
 
+  // Convert markdown to HTML for display
   const renderMarkdown = (markdown) => {
     if (!markdown) return "";
     return { __html: marked(markdown) };
   };
 
   const extractMarkdownFromResponse = (response) => {
+    // Extract markdown content from between markdown code blocks
     const markdownRegex = /```markdown\s*([\s\S]*?)\s*```/;
     const match = markdownRegex.exec(response.text);
     return match ? match[1] : null;
@@ -71,8 +102,9 @@ const DocumentGenerator = () => {
     setRequestStatus("Generating PDF...");
 
     try {
+      // Create a clean clone of the content for PDF generation
       const clone = contentElement.cloneNode(true);
-      clone.style.width = "793px";
+      clone.style.width = "793px"; // A4 width at 96 DPI
       clone.style.padding = "40px";
       clone.style.backgroundColor = "white";
       clone.style.position = "absolute";
@@ -88,6 +120,7 @@ const DocumentGenerator = () => {
 
       document.body.removeChild(clone);
 
+      // Create PDF
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -101,6 +134,7 @@ const DocumentGenerator = () => {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
+      // Metadata for editability
       pdf.setProperties({
         title: `${documentType.toUpperCase()} - ${new Date().toISOString()}`,
         subject: prompt,
@@ -110,6 +144,7 @@ const DocumentGenerator = () => {
         producer: "Document Generator",
       });
 
+      // Download the PDF
       pdf.save(`${documentType}-document-${Date.now()}.pdf`);
       setRequestStatus("PDF downloaded successfully");
 
@@ -122,7 +157,8 @@ const DocumentGenerator = () => {
   };
 
   useEffect(() => {
-    const selectedType = documentTypes.find((d) => d.id === documentType)?.label || documentType;
+    const selectedType =
+      documentTypes.find((d) => d.id === documentType)?.label || documentType;
     setInitialPrompt(`Draft a ${selectedType} for ${prompt}`);
   }, [documentType, prompt]);
 
@@ -131,6 +167,7 @@ const DocumentGenerator = () => {
     setRequestStatus("Connecting to document generation API...");
 
     try {
+      // Prepare the API request payload
       const requestPayload = {
         input_value: initialPrompt,
         output_type: "chat",
@@ -142,6 +179,7 @@ const DocumentGenerator = () => {
         },
       };
 
+      // Make the actual API request
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/proxy/generate`,
         {
@@ -158,23 +196,37 @@ const DocumentGenerator = () => {
       }
 
       const responseData = await response.json();
-      const responseMessage = responseData.outputs[0].outputs[0].results.message;
+
+      // Extract the markdown content and response
+      const responseMessage =
+        responseData.outputs[0].outputs[0].results.message;
       const markdownText = extractMarkdownFromResponse(responseMessage);
 
-      if (markdownText) setMarkdownContent(markdownText);
+      if (markdownText) {
+        setMarkdownContent(markdownText);
+      }
 
+      // Create standardized response format for the UI
       const formattedResponse = {
         document_type: documentType,
         metadata: {
-          reference_id: `DOC-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+          reference_id: `DOC-${Math.random()
+            .toString(36)
+            .substring(2, 10)
+            .toUpperCase()}`,
           timestamp: new Date().toISOString(),
           jurisdiction: "Delhi NCR",
           raw_response: responseData,
         },
         content: {
           header: {
-            title: documentTypes.find((d) => d.id === documentType)?.label.toUpperCase() || "DOCUMENT",
-            number: `${new Date().getFullYear()}/XXX/${Math.floor(Math.random() * 1000) + 100}`,
+            title:
+              documentTypes
+                .find((d) => d.id === documentType)
+                ?.label.toUpperCase() || "DOCUMENT",
+            number: `${new Date().getFullYear()}/XXX/${
+              Math.floor(Math.random() * 1000) + 100
+            }`,
             date: new Date().toLocaleDateString(),
           },
           markdown: markdownText,
@@ -196,49 +248,44 @@ const DocumentGenerator = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 p-4">
+    <div className="max-w-7xl mx-auto bg-gray-100">
       <div className="grid md:grid-cols-7 gap-4">
         {/* Left Panel - Input */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="md:col-span-3"
-        >
-          <div className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl border border-indigo-700/50 shadow-xl h-full overflow-hidden">
-            <div className="px-3 py-2 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800">
-              <h2 className="text-xs font-medium text-cyan-400 flex items-center gap-1">
-                <FileText className="w-4 h-4" />
-                DOCUMENT CREATOR
+        <div className="md:col-span-3">
+          <div className="bg-white rounded-md border border-gray-300 overflow-hidden h-full shadow-sm">
+            <div className="px-3 py-2 border-b border-gray-300 bg-gray-50">
+              <h2 className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                INPUT PARAMETERS
               </h2>
             </div>
 
             <div className="p-4 space-y-4">
               {/* Document Type Selector */}
               <div>
-                <label className="block text-xs font-medium text-indigo-300 mb-2">
+                <label className="block text-xs font-medium text-gray-600 mb-2">
                   Document Type
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {documentTypes.map((type) => (
-                    <motion.button
+                    <button
                       key={type.id}
                       onClick={() => setDocumentType(type.id)}
-                      whileHover={{ scale: 1.05, boxShadow: "0 0 10px rgba(34, 211, 238, 0.2)" }}
-                      whileTap={{ scale: 0.95 }}
                       className={`flex cursor-pointer justify-center items-center px-2 py-1 rounded-md border text-xs transition-all ${
                         documentType === type.id
-                          ? "border-2 shadow-md"
-                          : "border-indigo-700/50 hover:border-indigo-600"
+                          ? `border-1 bg-gray-50 shadow-sm`
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                       style={{
                         borderColor: documentType === type.id ? type.color : "",
-                        backgroundColor: documentType === type.id ? `${type.color}20` : "rgba(55, 65, 81, 0.5)",
-                      }}
-                    >
-                      <type.icon className="w-4 h-4" style={{ color: type.color }} />
-                      <span className="text-indigo-200 px-1">{type.label}</span>
-                    </motion.button>
+                        backgroundColor:
+                          documentType === type.id ? `${type.color}10` : "",
+                      }}>
+                      <type.icon
+                        className="w-4 h-4"
+                        style={{ color: type.color }}
+                      />
+                      <span className="text-gray-800 px-1">{type.label}</span>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -246,41 +293,36 @@ const DocumentGenerator = () => {
               {/* Prompt Input */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-xs font-medium text-indigo-300">
+                  <label className="block text-xs font-medium text-gray-600">
                     Document Details
                   </label>
-                  <span className="text-[10px] text-indigo-400">
+                  <span className="text-[10px] text-gray-500">
                     {prompt.length} chars
                   </span>
                 </div>
-                <motion.textarea
-                  value={prompt || initialPrompt || "No prompt generated yet"}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full h-32 p-3 bg-gray-800 border border-indigo-600/50 rounded-md resize-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-indigo-200 text-xs placeholder-indigo-400"
-                  placeholder="Describe the details for your document..."
-                  whileFocus={{ boxShadow: "0 0 15px rgba(34, 211, 238, 0.3)" }}
-                />
+
+                <div className="relative">
+                  <textarea
+                    value={prompt || initialPrompt || "No prompt generated yet"}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="w-full h-32 p-3 bg-gray-50 border border-gray-300 rounded-md resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs"
+                    placeholder="Describe the details for your document..."
+                  />
+                </div>
               </div>
 
               {/* Generate Button */}
-              <motion.button
+              <button
                 onClick={handleGenerate}
                 disabled={isLoading || !prompt.trim()}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 className={`w-full py-2 rounded-md flex items-center justify-center gap-2 transition-colors text-xs ${
                   isLoading || !prompt.trim()
-                    ? "bg-gray-700 cursor-not-allowed text-indigo-400"
-                    : "bg-cyan-600 hover:bg-cyan-700 text-white"
-                }`}
-              >
+                    ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}>
                 {isLoading ? (
                   <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-3 h-3 border-2 border-white border-t-transparent rounded-full"
-                    />
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Generating...</span>
                   </>
                 ) : (
@@ -289,45 +331,32 @@ const DocumentGenerator = () => {
                     <span>Generate Document</span>
                   </>
                 )}
-              </motion.button>
+              </button>
 
               {/* Status Message */}
-              <AnimatePresence>
-                {requestStatus && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="mt-2 text-xs text-center py-1 px-2 bg-indigo-800/50 border border-indigo-700 rounded-md text-cyan-300"
-                  >
-                    {requestStatus}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {requestStatus && (
+                <div className="mt-2 text-xs text-center py-1 px-2 bg-gray-50 border border-gray-200 rounded-md">
+                  {requestStatus}
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right Panel - Output */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="md:col-span-4"
-        >
-          <div className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl border border-indigo-700/50 shadow-xl h-full overflow-hidden">
-            <div className="px-3 py-2 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800 flex justify-between items-center">
+        <div className="md:col-span-4">
+          <div className="bg-white rounded-md border border-gray-300 overflow-hidden h-full shadow-sm">
+            <div className="px-3 py-2 border-b border-gray-300 bg-gray-50 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className={`w-1.5 h-1.5 rounded-full ${generatedContent ? "bg-green-500" : "bg-gray-500"}`}
-                />
-                <h2 className="text-xs font-medium text-cyan-400">
-                  {generatedContent ? "DOCUMENT OUTPUT" : "OUTPUT PREVIEW"}
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    generatedContent ? "bg-green-500" : "bg-gray-400"
+                  }`}></div>
+                <h2 className="text-xs font-medium text-gray-700">
+                  {generatedContent ? "GENERATED OUTPUT" : "OUTPUT PREVIEW"}
                 </h2>
                 {generatedContent && (
-                  <span className="text-[10px] bg-indigo-700 text-indigo-300 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
                     {documentTypes.find((t) => t.id === documentType)?.label}
                   </span>
                 )}
@@ -335,98 +364,87 @@ const DocumentGenerator = () => {
 
               {generatedContent && (
                 <div className="flex items-center gap-1">
-                  <motion.button
+                  <button
                     onClick={handleCopyContent}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-1 text-indigo-300 hover:text-cyan-400 hover:bg-indigo-700 rounded transition-colors"
-                    title="Copy JSON"
-                  >
+                    className="p-1 text-gray-500 cursor-pointer hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+                    title="Copy JSON">
                     {copied ? (
-                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <CheckCircle className="w-3 h-3 text-green-500" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
-                  </motion.button>
-                  <motion.button
+                  </button>
+                  <button
                     onClick={handleDownloadPDF}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-1 text-indigo-300 hover:text-cyan-400 hover:bg-indigo-700 rounded transition-colors"
-                    title="Download PDF"
-                  >
+                    className="p-1 text-gray-500 cursor-pointer hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+                    title="Download PDF">
                     <Download className="w-3 h-3" />
-                  </motion.button>
+                  </button>
                 </div>
               )}
             </div>
 
             <div className="relative">
               {generatedContent ? (
-                <div className="h-[600px] overflow-y-auto p-4" id="document-content">
+                <div
+                  className="h-[600px] overflow-y-auto p-4"
+                  id="document-content">
                   <div className="flex flex-col gap-4">
                     {/* Document Header */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="pb-3 border-b border-indigo-700/30"
-                    >
-                      <h3 className="text-sm font-medium text-indigo-100 mb-1">
+                    <div className="pb-3 border-b border-gray-200">
+                      <h3 className="text-sm font-medium text-gray-800 mb-1">
                         {generatedContent.content.header.title}
                       </h3>
-                      <div className="flex items-center gap-3 text-[10px] text-indigo-400">
-                        <span>REF: {generatedContent.content.header.number}</span>
-                        <span>DATE: {generatedContent.content.header.date}</span>
-                        <span>ID: {generatedContent.metadata.reference_id}</span>
+                      <div className="flex items-center gap-3 text-[10px] text-gray-500">
+                        <span>
+                          REF: {generatedContent.content.header.number}
+                        </span>
+                        <span>
+                          DATE: {generatedContent.content.header.date}
+                        </span>
+                        <span>
+                          ID: {generatedContent.metadata.reference_id}
+                        </span>
                       </div>
-                    </motion.div>
+                    </div>
 
                     {/* Markdown Content */}
                     {markdownContent && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="prose prose-sm max-w-none text-indigo-200"
-                      >
-                        <div dangerouslySetInnerHTML={renderMarkdown(markdownContent)} />
-                      </motion.div>
+                      <div className="prose prose-sm max-w-none text-gray-800">
+                        <div
+                          dangerouslySetInnerHTML={renderMarkdown(
+                            markdownContent
+                          )}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
               ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="flex flex-col items-center justify-center h-[600px] text-center text-indigo-400 p-4"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                    className="w-12 h-12 mb-4 rounded-full bg-indigo-800/50 flex items-center justify-center"
-                  >
-                    <FileText className="w-6 h-6 text-indigo-500" />
-                  </motion.div>
-                  <h3 className="text-xs font-medium text-indigo-300 mb-2">
+                <div className="flex flex-col items-center justify-center h-[600px] text-center text-gray-500 p-4">
+                  <div className="w-12 h-12 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-gray-300" />
+                  </div>
+                  <h3 className="text-xs font-medium text-gray-700 mb-2">
                     No Document Generated
                   </h3>
-                  <p className="max-w-md text-[11px] text-indigo-400 mb-4">
-                    Select a document type and provide details to generate a document. Output will be in Markdown, convertible to PDF.
+                  <p className="max-w-md text-[11px] text-gray-500 mb-4">
+                    Select document type and provide details to generate a
+                    document. The output will be provided in Markdown format and
+                    can be converted to PDF.
                   </p>
-                </motion.div>
+                </div>
               )}
             </div>
 
             {generatedContent && (
-              <div className="px-3 py-2 border-t border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800 flex items-center justify-between text-[10px] text-indigo-400">
-                <div>Format: Markdown → PDF (editable)</div>
+              <div className="px-3 py-2 border-t border-gray-300 bg-gray-50 flex items-center justify-between text-[10px] text-gray-500">
+                <div>Format: Markdown → PDF conversion (editable)</div>
                 <div>Generated: {new Date().toLocaleTimeString()}</div>
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
