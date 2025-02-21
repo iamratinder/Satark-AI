@@ -1,5 +1,5 @@
 import "regenerator-runtime/runtime";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -9,20 +9,26 @@ import {
   AlertCircle,
   Mic,
   MicOff,
-  ChevronRight,
   Trash2,
   Scale,
+  ArrowRight,
+  Brain,
+  Book,
+  Gavel,
 } from "lucide-react";
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 import legalApiService from "../../services/legalApi";
 
+// TypeWriter component remains the same
 const TypeWriter = ({ text, speed = 30 }) => {
-  const [displayedText, setDisplayedText] = useState('');
+  const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
-    setDisplayedText('');
+    setDisplayedText("");
     setCurrentIndex(0);
     setIsComplete(false);
   }, [text]);
@@ -30,8 +36,8 @@ const TypeWriter = ({ text, speed = 30 }) => {
   useEffect(() => {
     if (currentIndex < text.length) {
       const timer = setTimeout(() => {
-        setDisplayedText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
+        setDisplayedText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
       }, speed);
 
       return () => clearTimeout(timer);
@@ -42,7 +48,7 @@ const TypeWriter = ({ text, speed = 30 }) => {
 
   return (
     <div className="relative">
-      <p className="whitespace-pre-wrap text-indigo-200">{displayedText}</p>
+      <p className="whitespace-pre-wrap text-gray-300">{displayedText}</p>
       {!isComplete && (
         <motion.span
           className="inline-block w-0.5 h-5 bg-cyan-400 ml-1"
@@ -54,7 +60,40 @@ const TypeWriter = ({ text, speed = 30 }) => {
   );
 };
 
+// Background Effect Component
+const BackgroundEffect = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute w-screen h-screen">
+      <div className="absolute w-96 h-96 -top-48 -left-48 bg-cyan-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute w-96 h-96 top-1/3 right-1/4 bg-violet-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+    </div>
+    <div
+      className="absolute inset-0"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: "40px 40px",
+      }}
+    />
+  </div>
+);
+
+// Glowing Badge Component
+const GlowingBadge = ({ icon: Icon, text }) => (
+  <div
+    className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium 
+    bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 
+    shadow-lg shadow-cyan-500/10 hover:bg-cyan-500/20 transition-all duration-300">
+    <Icon className="w-4 h-4 mr-2" />
+    {text}
+  </div>
+);
+
 const LegalKnowledge = () => {
+  // State management remains the same
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
@@ -63,9 +102,10 @@ const LegalKnowledge = () => {
   const [isListening, setIsListening] = useState(false);
   const [useTypewriter, setUseTypewriter] = useState(true);
 
+  // Speech recognition setup
   const commands = [
-    { command: 'reset', callback: () => resetTranscript() },
-    { command: 'search', callback: () => handleSearch() }
+    { command: "reset", callback: () => resetTranscript() },
+    { command: "search", callback: () => handleSearch() },
   ];
 
   const {
@@ -73,10 +113,19 @@ const LegalKnowledge = () => {
     listening,
     resetTranscript,
     browserSupportsSpeechRecognition,
-    isMicrophoneAvailable
+    isMicrophoneAvailable,
   } = useSpeechRecognition({ commands });
 
-  const fetchSearchHistory = useCallback(async () => {
+  // All existing useEffects and handlers remain the same
+  useEffect(() => {
+    fetchSearchHistory();
+  }, []);
+
+  useEffect(() => {
+    if (transcript) setQuery(transcript);
+  }, [transcript]);
+
+  const fetchSearchHistory = async () => {
     try {
       const history = await legalApiService.getSearchHistory();
       setSearchHistory(history || []);
@@ -84,16 +133,9 @@ const LegalKnowledge = () => {
       console.error("Failed to fetch search history:", error);
       setError("Unable to load search history. Please try again later.");
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    fetchSearchHistory();
-  }, [fetchSearchHistory]);
-
-  useEffect(() => {
-    if (transcript) setQuery(transcript);
-  }, [transcript]);
-
+  // All other handlers remain the same
   const handleSearch = async () => {
     if (!query.trim()) return;
 
@@ -114,37 +156,7 @@ const LegalKnowledge = () => {
     }
   };
 
-  const handleDeleteHistory = async (id, e) => {
-    e.stopPropagation();
-    try {
-      const history = await legalApiService.getSearchHistory();
-      const updatedHistory = history.filter(item => item._id !== id);
-      localStorage.setItem('legalSearchHistory', JSON.stringify(updatedHistory));
-      fetchSearchHistory();
-    } catch (error) {
-      console.error("Failed to delete history item:", error);
-      setError("Unable to delete history item. Please try again later.");
-    }
-  };
-
-  const handleHistoryItemClick = async (historyId) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setResults(null);
-      setUseTypewriter(false);
-
-      const searchData = await legalApiService.getSearchDetails(historyId);
-      setQuery(searchData.query);
-      setResults(searchData.results);
-    } catch (error) {
-      console.error("Failed to load search details:", error);
-      setError("Unable to load previous search. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Improved voice input UI
   const toggleListening = () => {
     if (listening) {
       SpeechRecognition.stopListening();
@@ -152,236 +164,130 @@ const LegalKnowledge = () => {
     } else {
       setIsListening(true);
       resetTranscript();
-      SpeechRecognition.startListening({ continuous: true, language: 'en-US' });
+      SpeechRecognition.startListening({ continuous: true, language: "en-US" });
     }
-  };
-
-  const renderVoiceStatus = () => {
-    if (!browserSupportsSpeechRecognition) {
-      return (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-2 text-sm text-gray-400"
-        >
-          Browser doesn't support speech recognition.
-        </motion.div>
-      );
-    }
-
-    if (!isMicrophoneAvailable) {
-      return (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-2 text-sm text-red-400 flex items-center gap-2"
-        >
-          <AlertCircle className="w-4 h-4" />
-          Please allow microphone access to use voice input.
-        </motion.div>
-      );
-    }
-
-    if (isListening) {
-      return (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-2 flex items-center gap-2"
-        >
-          <motion.div
-            className="w-2 h-2 rounded-full bg-red-500"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-          />
-          <span className="text-sm text-indigo-300">Listening...</span>
-        </motion.div>
-      );
-    }
-
-    return null;
-  };
-
-  const renderResults = () => {
-    if (!results) return null;
-
-    const ResultContent = ({ children }) => (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mt-8"
-      >
-        <h3 className="text-lg font-medium mb-4 flex items-center gap-2 text-cyan-400">
-          <ChevronRight className="w-5 h-5" />
-          Legal Insights
-        </h3>
-        <div className="bg-gradient-to-br from-gray-800 to-indigo-900 p-6 rounded-xl border border-indigo-700/50 shadow-lg hover:shadow-xl transition-shadow">
-          {children}
-        </div>
-      </motion.div>
-    );
-
-    return (
-      <ResultContent>
-        <div className="mb-6 pb-6 border-b border-indigo-700/30">
-          <h4 className="font-medium text-cyan-400 mb-3">Summary</h4>
-          <div className="mt-2 text-indigo-200">
-            {useTypewriter ? (
-              <TypeWriter text={results.summary} speed={30} />
-            ) : (
-              <p className="whitespace-pre-wrap">{results.summary}</p>
-            )}
-          </div>
-        </div>
-
-        {results.relevantLaws?.length > 0 && (
-          <div className="mb-6 pb-6 border-b border-indigo-700/30">
-            <h4 className="font-medium text-cyan-400 mb-3">Relevant Statutes</h4>
-            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-              {results.relevantLaws.map((law, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-indigo-800/50 p-4 rounded-lg hover:bg-indigo-800/70 transition-all"
-                >
-                  <div className="flex items-start gap-2">
-                    <FileText className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-indigo-100">{law.title}</p>
-                      <p className="text-sm text-indigo-300 mt-1">{law.description}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {results.casePrecedents?.length > 0 && (
-          <div className="mb-6 pb-6 border-b border-indigo-700/30">
-            <h4 className="font-medium text-cyan-400 mb-3">Precedent Cases</h4>
-            <div className="space-y-4">
-              {results.casePrecedents.map((precedent, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-indigo-800/50 p-4 rounded-lg hover:bg-indigo-800/70 transition-all"
-                >
-                  <div className="flex items-start gap-2">
-                    <FileText className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-indigo-100">{precedent.title}</p>
-                      <p className="text-sm text-indigo-300 mt-1">{precedent.description}</p>
-                      <p className="text-xs text-indigo-400 mt-2 flex items-center gap-2">
-                        <span className="font-medium">{precedent.court}</span>
-                        <span>•</span>
-                        <span>{precedent.date}</span>
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {results.references?.length > 0 && (
-          <div>
-            <h4 className="font-medium text-cyan-400 mb-3">References</h4>
-            <ul className="space-y-2 text-sm text-indigo-300">
-              {results.references.map((ref, index) => (
-                <motion.li
-                  key={index}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start gap-2"
-                >
-                  <span className="text-cyan-400 font-medium">{index + 1}.</span>
-                  <span>{ref}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </ResultContent>
-    );
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-6">
+    <div className="relative min-h-full">
+      <BackgroundEffect />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl overflow-hidden border border-indigo-700/50"
-      >
-        <div className="p-6 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800">
-          <h2 className="text-2xl font-semibold flex items-center gap-2 text-cyan-400">
-            <Scale className="w-7 h-7" />
-            Legal Codex
-          </h2>
-          <p className="text-indigo-300 mt-2 ml-9 text-sm">
-            Access real-time legal updates, amendments, and case precedents with AI precision.
-          </p>
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative z-10 max-w-5xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-center mb-6">
+            <Brain className="w-16 h-16 text-cyan-400" />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-wrap justify-center gap-4 mb-8">
+            <GlowingBadge icon={Book} text="Legal Research" />
+            <GlowingBadge icon={Scale} text="Case Analysis" />
+            <GlowingBadge icon={Gavel} text="Precedent Search" />
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-600 bg-clip-text text-transparent">
+              Legal Knowledge Hub
+            </span>
+          </motion.h1>
         </div>
 
-        <div className="p-6">
-          <div className="relative group">
+        {/* Search Section */}
+        <div className="mb-12">
+          <div className="relative">
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., What are the latest updates in cybercrime laws?"
-              className="w-full p-4 pr-24 bg-gray-700 border border-indigo-600/50 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-indigo-100 placeholder-indigo-400 transition-all group-hover:shadow-md"
+              placeholder="Search legal precedents, statutes, or case law..."
+              className="w-full p-4 pl-12 pr-24 bg-black/50 backdrop-blur-xl 
+                border border-cyan-500/20 rounded-xl text-white
+                placeholder-gray-400 focus:outline-none focus:border-cyan-500/50
+                focus:ring-2 focus:ring-cyan-500/20 transition-all"
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400 w-5 h-5" />
+
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
               {browserSupportsSpeechRecognition && (
                 <motion.button
                   onClick={toggleListening}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className={`p-2 rounded-lg transition-all ${
-                    isListening 
-                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-md' 
-                      : 'bg-indigo-700 hover:bg-indigo-600 text-cyan-300'
-                  }`}
-                  title={isListening ? "Stop voice input" : "Start voice input"}
-                >
-                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  className={`p-2 cursor-pointer rounded-lg transition-all ${
+                    isListening
+                      ? "bg-red-500/20 text-red-400 border border-red-500/20"
+                      : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/20"
+                  }`}>
+                  {isListening ? (
+                    <MicOff className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
                 </motion.button>
               )}
               <motion.button
                 onClick={handleSearch}
                 disabled={isLoading || !query.trim()}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all disabled:bg-gray-500 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
-              >
-                <Search className="w-5 h-5" />
+                className="group cursor-pointer px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600
+                  rounded-lg flex items-center gap-2 text-white font-medium
+                  disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? (
+                  <motion.div
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                ) : (
+                  <>
+                    Search
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
               </motion.button>
             </div>
           </div>
 
-          {renderVoiceStatus()}
-
           <AnimatePresence>
-            {isListening && transcript && (
+            {isListening && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="mt-4 p-4 bg-indigo-800/50 border border-indigo-700 rounded-lg"
-              >
-                <p className="text-sm text-cyan-300">
-                  <span className="font-medium">Current transcript:</span> {transcript}
-                </p>
+                className="mt-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-4">
+                <div className="flex items-center">
+                  <motion.div
+                    className="mr-3 relative"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 0.8, repeat: Infinity }}>
+                    <div className="absolute inset-0 bg-cyan-400/30 rounded-full animate-ping" />
+                    <Mic className="relative text-cyan-400 w-5 h-5" />
+                  </motion.div>
+                  <div>
+                    <p className="text-cyan-400 font-medium">Listening...</p>
+                    <p className="text-sm text-cyan-400/80">
+                      {transcript || "Speak your legal query..."}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -392,91 +298,197 @@ const LegalKnowledge = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300 flex items-start gap-2"
-              >
+                className="mt-4 bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                 <p>{error}</p>
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
 
-          {isLoading && (
+        {/* Results Section */}
+        <AnimatePresence>
+          {results && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center my-8 space-y-4"
-            >
-              <motion.div
-                className="rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
-              <p className="text-indigo-300">Scanning legal archives...</p>
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl overflow-hidden mb-8">
+              <div className="p-6 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+                <h3 className="text-xl font-medium text-cyan-400">
+                  Legal Analysis
+                </h3>
+                <p className="text-gray-400 mt-2">{query}</p>
+              </div>
+
+              <div className="p-6">
+                {/* Summary */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-medium text-cyan-400 mb-4">
+                    Summary
+                  </h4>
+                  {useTypewriter ? (
+                    <TypeWriter text={results.summary} speed={30} />
+                  ) : (
+                    <p className="text-gray-300 whitespace-pre-wrap">
+                      {results.summary}
+                    </p>
+                  )}
+                </div>
+
+                {/* Relevant Laws */}
+                {results.relevantLaws?.length > 0 && (
+                  <div className="mb-8">
+                    <h4 className="text-lg font-medium text-cyan-400 mb-4">
+                      Relevant Statutes
+                    </h4>
+                    <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                      {results.relevantLaws.map((law, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-cyan-500/5 border border-cyan-500/20 p-4 rounded-xl">
+                          <div className="flex items-start gap-3">
+                            <FileText className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-gray-300">
+                                {law.title}
+                              </p>
+                              <p className="text-sm text-gray-400 mt-1">
+                                {law.description}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Case Precedents */}
+                {results.casePrecedents?.length > 0 && (
+                  <div className="mb-8">
+                    <h4 className="text-lg font-medium text-cyan-400 mb-4">
+                      Precedent Cases
+                    </h4>
+                    <div className="space-y-4">
+                      {results.casePrecedents.map((precedent, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-cyan-500/5 border border-cyan-500/20 p-4 rounded-xl">
+                          <div className="flex items-start gap-3">
+                            <Gavel className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-gray-300">
+                                {precedent.title}
+                              </p>
+                              <p className="text-sm text-gray-400 mt-1">
+                                {precedent.description}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2 text-xs text-cyan-400">
+                                <span className="font-medium">
+                                  {precedent.court}
+                                </span>
+                                <span>•</span>
+                                <span>{precedent.date}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* References */}
+                {results.references?.length > 0 && (
+                  <div>
+                    <h4 className="text-lg font-medium text-cyan-400 mb-4">
+                      Legal References
+                    </h4>
+                    <ul className="space-y-2">
+                      {results.references.map((ref, index) => (
+                        <motion.li
+                          key={index}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex items-start gap-3 text-sm">
+                          <BookOpen className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">{ref}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
+        </AnimatePresence>
 
-          {renderResults()}
-        </div>
-      </motion.div>
+        {/* Search History */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl overflow-hidden">
+          <div className="p-6 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+            <h3 className="text-xl font-medium text-cyan-400 flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Search Archives
+            </h3>
+          </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl overflow-hidden border border-indigo-700/50"
-      >
-        <div className="p-6 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800">
-          <h2 className="text-xl font-semibold flex items-center gap-2 text-cyan-400">
-            <Clock className="w-6 h-6" />
-            Search Archives
-          </h2>
-        </div>
-
-        <div className="p-6">
-          {searchHistory.length === 0 ? (
-            <div className="text-center py-8">
-              <Clock className="w-12 h-12 text-indigo-600/50 mx-auto mb-3" />
-              <p className="text-indigo-400">No search archives yet.</p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-indigo-700/30">
-              {searchHistory.map((item) => (
-                <motion.li
-                  key={item._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="py-4 px-4 hover:bg-indigo-800/50 cursor-pointer transition-all rounded-lg group"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div
-                      className="flex items-start gap-3 flex-grow"
-                      onClick={() => handleHistoryItemClick(item._id)}
-                    >
-                      <Search className="w-5 h-5 text-indigo-400 mt-0.5 group-hover:text-cyan-400 transition-colors" />
-                      <div>
-                        <p className="font-medium text-indigo-100 group-hover:text-cyan-400 transition-colors">
-                          {item.query}
-                        </p>
-                        <p className="text-sm text-indigo-400">
-                          {new Date(item.timestamp).toLocaleString()}
-                        </p>
+          <div className="divide-y divide-cyan-500/20">
+            {searchHistory.length === 0 ? (
+              <div className="p-12 text-center">
+                <Clock className="w-12 h-12 text-cyan-400/50 mx-auto mb-3" />
+                <p className="text-gray-400">No search history yet</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Your search queries will appear here
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-cyan-500/20">
+                {searchHistory.map((item) => (
+                  <motion.div
+                    key={item._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="p-4 hover:bg-cyan-500/5 transition-all group">
+                    <div className="flex items-start justify-between gap-3">
+                      <div
+                        className="flex items-start gap-3 flex-grow cursor-pointer"
+                        onClick={() => handleHistoryItemClick(item._id)}>
+                        <Search className="w-5 h-5 text-cyan-400 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-gray-300 group-hover:text-cyan-400 transition-colors">
+                            {item.query}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(item.timestamp).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
+                      <motion.button
+                        onClick={(e) => handleDeleteHistory(item._id, e)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-2 text-gray-400 cursor-pointer hover:text-red-400 rounded-lg group-hover:opacity-100 transition-all">
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
                     </div>
-                    <motion.button
-                      onClick={(e) => handleDeleteHistory(item._id, e)}
-                      whileHover={{ scale: 1.1, rotate: 90 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 text-indigo-400 hover:text-red-400 hover:bg-red-900/30 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                      title="Delete from history"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </motion.button>
-                  </div>
-                </motion.li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );

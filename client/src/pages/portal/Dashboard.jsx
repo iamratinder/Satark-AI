@@ -1,193 +1,255 @@
 import React from "react";
-import { motion } from "framer-motion";
 import {
-  BarChart3,
   FileText,
   Scale,
-  ShieldCheck,
-  TrendingUp,
-  Lightbulb,
-  Clock,
-  AlertTriangle,
-  Siren,
-  Zap,
   BookOpen,
-  Search,
+  AlertCircle,
+  Clock,
+  ChevronRight,
+  Siren,
+  MessageSquare,
+  ArrowRight,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const BackgroundEffect = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute w-screen h-screen">
+      <div className="absolute w-96 h-96 -top-48 -left-48 bg-cyan-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute w-96 h-96 top-1/3 right-1/4 bg-violet-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+    </div>
+    <div
+      className="absolute inset-0"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: "40px 40px",
+      }}
+    />
+  </div>
+);
+
+const StatCard = ({ icon: Icon, title, value, subtext }) => (
+  <div className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl p-6 hover:bg-cyan-500/5 transition-all duration-300">
+    <div className="flex items-start justify-between">
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-2">
+          <Icon className="w-5 h-5 text-cyan-400" />
+          <h3 className="text-sm font-medium text-gray-400">{title}</h3>
+        </div>
+        <p className="text-2xl font-bold text-white mb-1">{value}</p>
+        {subtext && <p className="text-sm text-gray-400">{subtext}</p>}
+      </div>
+    </div>
+  </div>
+);
 
 const Dashboard = () => {
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        delayChildren: 0.2,
-        staggerChildren: 0.15,
-      },
+  const navigate = useNavigate();
+  const stats = [
+    {
+      icon: MessageSquare,
+      title: "AI Consultations",
+      value: "2,456",
+      subtext: "+14.5% this month",
     },
-  };
-
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0, rotateX: -15 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      rotateX: 0,
-      transition: { type: "spring", stiffness: 100 },
+    {
+      icon: FileText,
+      title: "Documents Generated",
+      value: "856",
+      subtext: "+23.4% this month",
     },
-  };
+    {
+      icon: Scale,
+      title: "Cases Analyzed",
+      value: "1,289",
+      subtext: "+18.2% this month",
+    },
+    {
+      icon: BookOpen,
+      title: "Legal References",
+      value: "15K+",
+      subtext: "Across all domains",
+    },
+  ];
 
-  const hoverEffect = {
-    scale: 1.05,
-    rotate: 1,
-    boxShadow: "0 10px 20px rgba(0, 0, 0, 0.2)",
-  };
+  const recentActivities = [
+    {
+      type: "Query",
+      text: "Legal implications of AI-generated content?",
+      time: "5 minutes ago",
+      icon: MessageSquare,
+    },
+    {
+      type: "Document",
+      text: "Generated legal notice for trademark violation",
+      time: "23 minutes ago",
+      icon: FileText,
+    },
+    {
+      type: "Analysis",
+      text: "Analyzed precedent cases for cybercrime",
+      time: "1 hour ago",
+      icon: Scale,
+    },
+  ];
+
+  const alertUpdates = [
+    {
+      title: "Legal Framework Update",
+      description: "New cybersecurity regulations effective from next month",
+      severity: "info",
+    },
+    {
+      title: "High Priority Alert",
+      description: "Significant amendments to data protection laws",
+      severity: "warning",
+    },
+    {
+      title: "System Update",
+      description: "AI model enhancement for better legal analysis",
+      severity: "success",
+    },
+  ];
 
   return (
-    <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-gray-800 p-8 text-white"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Header with Animated Gradient */}
-      <motion.h1
-        className="text-4xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent"
-        variants={itemVariants}
-        whileHover={{ scale: 1.03 }}
-      >
-        AI LegalSync Dashboard
-      </motion.h1>
+    <div className="relative min-h-full">
+      <BackgroundEffect />
 
-      {/* Live Crime Alert Ticker */}
-      <motion.div
-        className="mt-4 p-3 bg-red-600/20 backdrop-blur-md rounded-xl flex items-center gap-3"
-        variants={itemVariants}
-        animate={{ x: [0, -10, 0], transition: { repeat: Infinity, duration: 2 } }}
-      >
-        <Siren className="w-5 h-5 text-red-400 animate-pulse" />
-        <p className="text-sm">
-          <span className="font-semibold">Live Alert:</span> Surge in ATM scams detected in Bengaluru - 15 cases in 24hrs
-        </p>
-      </motion.div>
-
-      {/* Stat Cards */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6"
-        variants={containerVariants}
-      >
-        {[
-          { icon: <Scale />, title: "Legal Queries", value: "1.2K", color: "from-blue-500 to-blue-700" },
-          { icon: <FileText />, title: "Docs Generated", value: "450+", color: "from-green-500 to-teal-700" },
-          { icon: <ShieldCheck />, title: "Trends Analyzed", value: "320", color: "from-yellow-500 to-orange-700" },
-          { icon: <BarChart3 />, title: "Law Updates", value: "180+", color: "from-red-500 to-pink-700" },
-        ].map((stat, index) => (
-          <motion.div
-            key={index}
-            className={`p-6 bg-gradient-to-br ${stat.color} rounded-2xl flex items-center space-x-4 shadow-lg`}
-            variants={itemVariants}
-            whileHover={hoverEffect}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="p-3 rounded-full bg-white/20">{stat.icon}</div>
-            <div>
-              <h2 className="text-lg font-semibold">{stat.title}</h2>
-              <p className="text-2xl font-bold">{stat.value}</p>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Main Content */}
-      <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8"
-        variants={containerVariants}
-      >
-        {/* Recent Queries */}
-        <motion.div
-          className="lg:col-span-2 p-6 bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl"
-          variants={itemVariants}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <BookOpen className="w-5 h-5" /> Recent Legal Queries
-            </h2>
-            <Clock className="w-5 h-5 text-blue-400" />
-          </div>
-          <ul className="space-y-4">
-            {["Latest updates on cybercrime laws?", "Draft an FIR for corporate fraud", "Case references for IPC 420?"].map(
-              (query, idx) => (
-                <motion.li
-                  key={idx}
-                  className="bg-gray-700/50 p-3 rounded-lg flex items-center gap-3 hover:bg-gray-600/70 transition-colors"
-                  whileHover={{ x: 5 }}
-                >
-                  <TrendingUp className="w-5 h-5 text-blue-400" />
-                  <span>{query}</span>
-                </motion.li>
-              )
-            )}
-          </ul>
-        </motion.div>
-
-        {/* AI Suggestions */}
-        <motion.div
-          className="p-6 bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl"
-          variants={itemVariants}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Lightbulb className="w-5 h-5" /> AI Insights
-            </h2>
-            <Zap className="w-5 h-5 text-yellow-400 animate-pulse" />
-          </div>
-          <ul className="space-y-4">
-            {[
-              "Monitor rising cyber fraud in Delhi",
-              "Update FIR templates for compliance",
-              "Optimize doc processing speed",
-            ].map((suggestion, idx) => (
-              <motion.li
-                key={idx}
-                className="flex items-center gap-3 text-sm"
-                whileHover={{ scale: 1.02 }}
-              >
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-                <span>{suggestion}</span>
-              </motion.li>
-            ))}
-          </ul>
-        </motion.div>
-      </motion.div>
-
-      {/* Quick Actions */}
-      <motion.div
-        className="mt-8 p-6 bg-gradient-to-r from-purple-600 to-indigo-700 rounded-2xl flex justify-between items-center"
-        variants={itemVariants}
-        whileHover={{ scale: 1.02 }}
-      >
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Search className="w-5 h-5" /> Quick Actions
-        </h2>
-        <div className="flex space-x-4">
-          <motion.button
-            className="bg-white text-indigo-600 px-5 py-2 rounded-full font-semibold shadow-md"
-            whileHover={{ scale: 1.1, boxShadow: "0 5px 15px rgba(255,255,255,0.3)" }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Generate FIR
-          </motion.button>
-          <motion.button
-            className="bg-white text-indigo-600 px-5 py-2 rounded-full font-semibold shadow-md"
-            whileHover={{ scale: 1.1, boxShadow: "0 5px 15px rgba(255,255,255,0.3)" }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Analyze Trends
-          </motion.button>
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold tracking-tight">
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-600 bg-clip-text text-transparent">
+              Command Center
+            </span>
+          </h1>
+          <p className="text-gray-400 mt-2">
+            Real-time insights and analytics for legal operations
+          </p>
         </div>
-      </motion.div>
-    </motion.div>
+
+        {/* Priority Alert */}
+        <div className="mb-8 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-xl p-4 flex items-center gap-3">
+          <div className="relative">
+            <Siren className="w-5 h-5 text-red-400" />
+            <div className="absolute inset-0 bg-red-400/30 rounded-full animate-ping" />
+          </div>
+          <div>
+            <h3 className="font-medium text-red-400">Priority Alert</h3>
+            <p className="text-sm text-gray-300">
+              New Supreme Court judgment affecting digital evidence
+              admissibility
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => (
+            <StatCard key={index} {...stat} />
+          ))}
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Activity */}
+          <div className="lg:col-span-2 bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl overflow-hidden">
+            <div className="p-6 border-b border-cyan-500/20">
+              <h2 className="text-xl font-medium text-cyan-400 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Recent Activity
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {recentActivities.map((activity, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-4 group hover:bg-cyan-500/5 p-4 rounded-xl transition-all duration-300">
+                    <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400">
+                      <activity.icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-gray-300 group-hover:text-cyan-400 transition-colors">
+                        {activity.text}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {activity.time}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Updates & Alerts */}
+          <div className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl overflow-hidden">
+            <div className="p-6 border-b border-cyan-500/20">
+              <h2 className="text-xl font-medium text-cyan-400 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                Updates & Alerts
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                {alertUpdates.map((alert, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-xl border ${
+                      alert.severity === "warning"
+                        ? "bg-yellow-500/10 border-yellow-500/20"
+                        : alert.severity === "success"
+                        ? "bg-green-500/10 border-green-500/20"
+                        : "bg-cyan-500/10 border-cyan-500/20"
+                    }`}>
+                    <h3
+                      className={`font-medium ${
+                        alert.severity === "warning"
+                          ? "text-yellow-400"
+                          : alert.severity === "success"
+                          ? "text-green-400"
+                          : "text-cyan-400"
+                      }`}>
+                      {alert.title}
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">
+                      {alert.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mt-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 backdrop-blur-xl border border-cyan-500/20 rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-medium text-cyan-400">Quick Actions</h2>
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigate("/dashboard/generate")}
+                className="px-6 cursor-pointer py-2 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg text-white font-medium flex items-center gap-2 hover:brightness-110 transition-all">
+                Generate Document
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => navigate("/dashboard/analysis")}
+                className="px-6 cursor-pointer py-2 bg-black/50 border border-cyan-500/20 rounded-lg text-cyan-400 font-medium flex items-center gap-2 hover:bg-cyan-500/10 transition-all">
+                Start Analysis
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
