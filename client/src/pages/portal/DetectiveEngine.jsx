@@ -32,8 +32,9 @@ const DetectiveEngine = () => {
   const [isListening, setIsListening] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recentQueries] = useState([
-    "What is the punishment under IPC 420 for corporate fraud?",
-    "Explain the evidence requirements for NDPS Act cases",
+    "Tell me about the FIR case of Arjun Mehta?",
+    "What is the punishment for IPC 420?",
+    "What are the legal rights of an arrested person?",
     "What are the bail conditions for non-bailable offenses?",
     "Recent Supreme Court rulings on cyber crimes",
   ]);
@@ -330,9 +331,9 @@ const DetectiveEngine = () => {
                   <motion.button
                     key={idx}
                     onClick={() => handleSuggestedQueryClick(q)}
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-cyan-500/10 border border-cyan-500/20 rounded-full 
+                    className="bg-cyan-500/10 cursor-pointer border border-cyan-500/20 rounded-full 
                       px-4 py-2 text-sm text-cyan-400 hover:bg-cyan-500/20 transition-all">
                     {q}
                   </motion.button>
