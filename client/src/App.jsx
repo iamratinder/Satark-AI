@@ -14,7 +14,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/portal/Dashboard";
 import LegalKnowledge from "./pages/portal/LegalKnowledge";
 import DocumentGenerator from "./pages/portal/DocumentGenerator";
-import LegalQA from "./pages/portal/LegalQA";
+import DetectiveEngine from "./pages/portal/DetectiveEngine";
 import CrimeAnalysis from "./pages/portal/CrimeAnalysis";
 
 const App = () => {
@@ -26,15 +26,12 @@ const App = () => {
         <Route path="/register" element={<Register />} />
 
         {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={<ProtectedRoute />}
-        >
+        <Route path="/dashboard" element={<ProtectedRoute />}>
           <Route path="" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="knowledge" element={<LegalKnowledge />} />
             <Route path="generate" element={<DocumentGenerator />} />
-            <Route path="qa" element={<LegalQA />} />
+            <Route path="investigation" element={<DetectiveEngine />} />
             <Route path="analysis" element={<CrimeAnalysis />} />
           </Route>
         </Route>

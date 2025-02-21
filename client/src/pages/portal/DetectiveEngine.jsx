@@ -1,3 +1,5 @@
+// backend -> /investigation route
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SpeechRecognition, {
@@ -13,15 +15,18 @@ import {
   Mic,
   MicOff,
   StopCircle,
+  MessageSquare,
+  Scale,
+  BookOpen,
 } from "lucide-react";
-import legalApiService from "../../services/legalApi";
+import engineApiService from "../../services/engineApi";
 
-const LegalQA = () => {
+const DetectiveEngine = () => {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
-  const [displayedAnswer, setDisplayedAnswer] = useState(""); // For typewriter effect
-  const [isTyping, setIsTyping] = useState(false); // Track typing state
+  const [displayedAnswer, setDisplayedAnswer] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const [history, setHistory] = useState([]);
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -35,7 +40,7 @@ const LegalQA = () => {
 
   const responseRef = useRef(null);
   const queryInputRef = useRef(null);
-  const typingIntervalRef = useRef(null); // Ref to store typing interval
+  const typingIntervalRef = useRef(null);
 
   const {
     transcript,
@@ -50,6 +55,27 @@ const LegalQA = () => {
       { command: "clear", callback: () => setQuery("") },
     ],
   });
+
+  // Background Elements Component
+  const BackgroundEffect = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute w-screen h-screen">
+        <div className="absolute w-96 h-96 -top-48 -left-48 bg-cyan-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-1/4 bg-violet-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+    </div>
+  );
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
@@ -81,14 +107,12 @@ const LegalQA = () => {
     if (response && response.answer && !isTyping) {
       startTypewriter(response.answer);
     }
-    return () => stopTypewriter(); // Cleanup on unmount or new response
+    return () => stopTypewriter();
   }, [response]);
 
   const fetchQueryHistory = async () => {
-    console.log("Fetching history with token:", localStorage.getItem("token"));
     try {
-      const historyData = await legalApiService.getLegalQAHistory();
-      console.log("History response:", historyData);
+      const historyData = await engineApiService.getLegalQAHistory();
       setHistory(historyData || []);
     } catch (err) {
       console.error("Failed to fetch QA history:", err);
@@ -96,21 +120,21 @@ const LegalQA = () => {
   };
 
   const startTypewriter = (text) => {
-    stopTypewriter(); // Clear any existing typing
-    setDisplayedAnswer(""); // Reset displayed text
+    stopTypewriter();
+    setDisplayedAnswer("");
     setIsTyping(true);
-    let currentText = ""; // Local variable to build text
+    let currentText = "";
     let index = 0;
 
     typingIntervalRef.current = setInterval(() => {
       if (index < text.length) {
-        currentText += text[index]; // Build text incrementally
-        setDisplayedAnswer(currentText); // Update state with full current text
+        currentText += text[index];
+        setDisplayedAnswer(currentText);
         index++;
       } else {
         stopTypewriter();
       }
-    }, 50); // Adjust speed (50ms per character)
+    }, 50);
   };
 
   const stopTypewriter = () => {
@@ -119,7 +143,7 @@ const LegalQA = () => {
       typingIntervalRef.current = null;
     }
     setIsTyping(false);
-    if (response) setDisplayedAnswer(response.answer); // Show full text if stopped
+    if (response) setDisplayedAnswer(response.answer);
   };
 
   const handleQuerySubmit = async (e) => {
@@ -128,18 +152,17 @@ const LegalQA = () => {
 
     setIsLoading(true);
     setError("");
-    setResponse(null); // Reset previous response
+    setResponse(null);
 
     try {
-      const result = await legalApiService.submitInvestigationQuery(query);
-      console.log("API Response:", result); // Debug response
+      const result = await engineApiService.submitInvestigationQuery(query);
       setResponse({
         answer: result.answer,
         sources: result.sources,
         confidence: result.confidence,
         query: query,
       });
-      fetchQueryHistory(); // Refresh history after successful query
+      fetchQueryHistory();
     } catch (err) {
       console.error("Error querying investigation AI:", err);
       setError(err.message || "Failed to get response. Please try again.");
@@ -163,7 +186,7 @@ const LegalQA = () => {
       setIsLoading(true);
       setError("");
 
-      const queryDetails = await legalApiService.getLegalQADetails(historyId);
+      const queryDetails = await engineApiService.getLegalQADetails(historyId);
       setQuery(queryDetails.query);
       setResponse(queryDetails);
     } catch (err) {
@@ -191,24 +214,55 @@ const LegalQA = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="relative min-h-full">
+      <BackgroundEffect />
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative z-10 max-w-5xl mx-auto">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8">
-          <h1 className="text-3xl font-bold text-cyan-400 flex items-center">
-            <Gavel className="mr-3 w-8 h-8" />
-            AI Legal Counsel
+          className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <MessageSquare className="w-16 h-16 text-cyan-400" />
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <div
+              className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium 
+              bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 
+              shadow-lg shadow-cyan-500/10">
+              <Scale className="w-4 h-4 mr-2" />
+              Legal Analysis
+            </div>
+            <div
+              className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium 
+              bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 
+              shadow-lg shadow-cyan-500/10">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Case References
+            </div>
+            <div
+              className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium 
+              bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 
+              shadow-lg shadow-cyan-500/10">
+              <Gavel className="w-4 h-4 mr-2" />
+              Legal Guidance
+            </div>
+          </div>
+
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-600 bg-clip-text text-transparent">
+              Detective Engine
+            </span>
           </h1>
-          <p className="text-indigo-300 mt-2 text-sm">
-            Pose any legal question and receive precise answers with case law
-            and statutory references.
-          </p>
         </motion.div>
 
-        <form onSubmit={handleQuerySubmit} className="mb-6">
+        {/* Query Input */}
+        <form onSubmit={handleQuerySubmit} className="mb-8">
           <div className="relative">
             <motion.input
               ref={queryInputRef}
@@ -216,10 +270,12 @@ const LegalQA = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="E.g., What is the punishment under IPC 420 for corporate fraud?"
-              className="w-full p-4 pl-12 pr-24 bg-gray-800 border border-indigo-700/50 rounded-lg text-indigo-100 placeholder-indigo-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-              whileFocus={{ boxShadow: "0 0 15px rgba(34, 211, 238, 0.3)" }}
+              className="w-full p-4 pl-12 pr-24 bg-black/50 backdrop-blur-xl 
+                border border-cyan-500/20 rounded-xl text-white
+                placeholder-gray-400 focus:outline-none focus:border-cyan-500/50
+                focus:ring-2 focus:ring-cyan-500/20 transition-all"
             />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400 w-5 h-5" />
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
               {browserSupportsSpeechRecognition && (
                 <motion.button
@@ -229,10 +285,9 @@ const LegalQA = () => {
                   whileTap={{ scale: 0.9 }}
                   className={`p-2 rounded-lg transition-all ${
                     isListening
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-indigo-700 hover:bg-indigo-600 text-cyan-300"
-                  }`}
-                  title={isListening ? "Stop listening" : "Start voice input"}>
+                      ? "bg-red-500/20 text-red-400 border border-red-500/20"
+                      : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/20"
+                  }`}>
                   {isListening ? (
                     <MicOff className="w-5 h-5" />
                   ) : (
@@ -247,8 +302,8 @@ const LegalQA = () => {
                 whileTap={{ scale: 0.9 }}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
                   isLoading || !query.trim()
-                    ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    : "bg-cyan-600 text-white hover:bg-cyan-700"
+                    ? "bg-gray-800 text-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
                 }`}>
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -267,7 +322,7 @@ const LegalQA = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               className="mb-8">
-              <h3 className="text-sm font-medium text-indigo-400 mb-2">
+              <h3 className="text-sm font-medium text-cyan-400 mb-2">
                 Explore these queries:
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -275,12 +330,10 @@ const LegalQA = () => {
                   <motion.button
                     key={idx}
                     onClick={() => handleSuggestedQueryClick(q)}
-                    whileHover={{
-                      scale: 1.05,
-                      boxShadow: "0 0 10px rgba(34, 211, 238, 0.2)",
-                    }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-indigo-800/50 border border-indigo-700/50 rounded-full px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-800/70 transition-all">
+                    className="bg-cyan-500/10 border border-cyan-500/20 rounded-full 
+                      px-4 py-2 text-sm text-cyan-400 hover:bg-cyan-500/20 transition-all">
                     {q}
                   </motion.button>
                 ))}
@@ -295,7 +348,7 @@ const LegalQA = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6 text-red-300 flex items-start gap-2">
+              className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6 text-red-400 flex items-start gap-2">
               <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
               <p>{error}</p>
             </motion.div>
@@ -308,7 +361,7 @@ const LegalQA = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="bg-indigo-800/50 border border-indigo-700 rounded-lg p-4 mb-6">
+              className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-4 mb-6">
               <div className="flex items-center">
                 <motion.div
                   className="mr-3 relative"
@@ -319,7 +372,7 @@ const LegalQA = () => {
                 </motion.div>
                 <div>
                   <p className="text-cyan-400 font-medium">Listening...</p>
-                  <p className="text-sm text-indigo-300">
+                  <p className="text-sm text-cyan-400/80">
                     {transcript || "Speak your legal question"}
                   </p>
                 </div>
@@ -334,8 +387,8 @@ const LegalQA = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl overflow-hidden mb-8 border border-indigo-700/50">
-            <div className="bg-gradient-to-r from-indigo-900 to-gray-800 p-4">
+            className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl overflow-hidden mb-8">
+            <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-4">
               <h3 className="font-medium text-cyan-400 flex items-center justify-between">
                 <span>Legal Analysis</span>
                 <div className="flex items-center gap-2">
@@ -344,7 +397,7 @@ const LegalQA = () => {
                       onClick={stopTypewriter}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      className="text-indigo-200 hover:text-red-400 p-2 rounded"
+                      className="text-cyan-400 hover:text-red-400 p-2 rounded"
                       title="Stop typing">
                       <StopCircle className="w-4 h-4" />
                     </motion.button>
@@ -353,7 +406,7 @@ const LegalQA = () => {
                     onClick={() => copyToClipboard(displayedAnswer)}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="text-indigo-200 hover:text-cyan-400 p-2 rounded flex items-center gap-1 relative"
+                    className="text-cyan-400 hover:text-cyan-300 p-2 rounded flex items-center gap-1 relative"
                     title="Copy to clipboard">
                     <Clipboard className="w-4 h-4" />
                     <AnimatePresence>
@@ -362,7 +415,7 @@ const LegalQA = () => {
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 10 }}
-                          className="text-xs absolute right-full mr-2 bg-indigo-700 px-2 py-1 rounded">
+                          className="text-xs absolute right-full mr-2 bg-cyan-500/10 px-2 py-1 rounded">
                           Copied!
                         </motion.span>
                       )}
@@ -370,11 +423,13 @@ const LegalQA = () => {
                   </motion.button>
                 </div>
               </h3>
-              <p className="text-sm text-indigo-300">Query: {response.query}</p>
+              <p className="text-sm text-cyan-400/80">
+                Query: {response.query}
+              </p>
             </div>
 
-            <div className="p-5 text-indigo-200">
-              <div className="prose max-w-none">
+            <div className="p-5 text-gray-300">
+              <div className="prose prose-invert max-w-none">
                 {displayedAnswer.split("\n").map((paragraph, idx) => (
                   <motion.p
                     key={idx}
@@ -392,7 +447,7 @@ const LegalQA = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="mt-6 pt-4 border-t border-indigo-700/30">
+                  className="mt-6 pt-4 border-t border-cyan-500/20">
                   <h4 className="text-lg font-medium text-cyan-400 mb-2">
                     Legal References:
                   </h4>
@@ -403,7 +458,7 @@ const LegalQA = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="text-sm bg-indigo-800/50 p-3 rounded border border-indigo-700/30">
+                        className="text-sm bg-cyan-500/5 p-3 rounded-lg border border-cyan-500/20">
                         <div>
                           <span className="font-medium text-cyan-400">
                             Source:
@@ -419,7 +474,7 @@ const LegalQA = () => {
                           </div>
                         )}
                         {source.excerpt && (
-                          <div className="mt-2 text-xs bg-indigo-900/50 p-2 rounded italic text-indigo-300">
+                          <div className="mt-2 text-xs bg-cyan-500/5 p-2 rounded italic text-cyan-400/80">
                             "{source.excerpt}"
                           </div>
                         )}
@@ -432,18 +487,19 @@ const LegalQA = () => {
           </motion.div>
         )}
 
+        {/* History Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl overflow-hidden border border-indigo-700/50">
-          <div className="bg-gradient-to-r from-indigo-900 to-gray-800 p-4 flex items-center gap-2">
+          className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-4 flex items-center gap-2">
             <Clock className="w-4 h-4 text-cyan-400" />
             <h3 className="font-medium text-cyan-400">Query Archives</h3>
           </div>
-          <div className="divide-y divide-indigo-700/30 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-cyan-500/20 max-h-96 overflow-y-auto">
             {history.length === 0 ? (
-              <div className="p-6 text-center text-indigo-400">
+              <div className="p-6 text-center text-cyan-400">
                 No query archives yet. Begin your legal inquiries!
               </div>
             ) : (
@@ -452,16 +508,16 @@ const LegalQA = () => {
                   key={item._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  whileHover={{ backgroundColor: "rgba(55, 65, 81, 0.5)" }}
+                  whileHover={{ backgroundColor: "rgba(6, 182, 212, 0.05)" }}
                   className="p-4 cursor-pointer transition-colors"
                   onClick={() => handleHistoryItemClick(item._id)}>
-                  <p className="font-medium text-indigo-100">{item.query}</p>
+                  <p className="font-medium text-gray-300">{item.query}</p>
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-xs text-indigo-400">
+                    <p className="text-xs text-cyan-400/80">
                       {new Date(item.timestamp).toLocaleString()}
                     </p>
                     {item.sources?.length > 0 && (
-                      <span className="text-xs px-2 py-1 bg-indigo-700 text-cyan-300 rounded-full">
+                      <span className="text-xs px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-full">
                         {item.sources.length} sources
                       </span>
                     )}
@@ -471,9 +527,9 @@ const LegalQA = () => {
             )}
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-export default LegalQA;
+export default DetectiveEngine;

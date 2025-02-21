@@ -88,10 +88,18 @@ const Layout = () => {
 
   const menuItems = [
     { icon: Home, label: "Command Center", path: "/dashboard" },
-    { icon: BookOpen, label: "Legal Codex", path: "/dashboard/knowledge" },
-    { icon: FileText, label: "Doc Forge", path: "/dashboard/generate" },
-    { icon: MessageSquare, label: "AI Counsel", path: "/dashboard/qa" },
-    { icon: BarChart2, label: "Crime Matrix", path: "/dashboard/analysis" },
+    {
+      icon: MessageSquare,
+      label: "Detective Engine",
+      path: "/dashboard/investigation",
+    },
+    {
+      icon: FileText,
+      label: "Document Generator",
+      path: "/dashboard/generate",
+    },
+    { icon: BookOpen, label: "Legal Knowledge", path: "/dashboard/knowledge" },
+    { icon: BarChart2, label: "Suraksha Setu", path: "/dashboard/analysis" },
   ];
 
   const handleLogout = async () => {

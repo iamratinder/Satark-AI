@@ -122,16 +122,8 @@ const Hero = () => {
           <motion.div
             variants={itemVariants}
             className="flex flex-wrap justify-center gap-4 mb-8">
-            <GlowingBadge
-              icon={Lock}
-              text="Military-grade Security"
-              color="cyan"
-            />
-            <GlowingBadge
-              icon={Radar}
-              text="Real-time Analysis"
-              color="violet"
-            />
+            <GlowingBadge icon={Lock} text="Secured" color="cyan" />
+            <GlowingBadge icon={Radar} text="Real-time Analysis" color="cyan" />
             <GlowingBadge
               icon={AlertCircle}
               text="Threat Detection"
