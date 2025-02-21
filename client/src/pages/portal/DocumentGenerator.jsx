@@ -248,7 +248,7 @@ const DocumentGenerator = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto text-black bg-gray-100">
+    <div className="max-w-7xl mx-auto text-black bg-transparent">
       <div className="grid md:grid-cols-7 gap-4">
         {/* Left Panel - Input */}
         <div className="md:col-span-3">
