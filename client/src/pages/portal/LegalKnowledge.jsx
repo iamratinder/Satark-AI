@@ -1,6 +1,18 @@
 import "regenerator-runtime/runtime";
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, BookOpen, Clock, FileText, AlertCircle, Mic, MicOff, ChevronRight, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  BookOpen,
+  Clock,
+  FileText,
+  AlertCircle,
+  Mic,
+  MicOff,
+  ChevronRight,
+  Trash2,
+  Scale,
+} from "lucide-react";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import legalApiService from "../../services/legalApi";
 
@@ -30,9 +42,13 @@ const TypeWriter = ({ text, speed = 30 }) => {
 
   return (
     <div className="relative">
-      <p className="whitespace-pre-wrap">{displayedText}</p>
+      <p className="whitespace-pre-wrap text-indigo-200">{displayedText}</p>
       {!isComplete && (
-        <span className="inline-block w-0.5 h-5 bg-blue-500 ml-1 animate-pulse" />
+        <motion.span
+          className="inline-block w-0.5 h-5 bg-cyan-400 ml-1"
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+        />
       )}
     </div>
   );
@@ -48,14 +64,8 @@ const LegalKnowledge = () => {
   const [useTypewriter, setUseTypewriter] = useState(true);
 
   const commands = [
-    {
-      command: 'reset',
-      callback: () => resetTranscript()
-    },
-    {
-      command: 'search',
-      callback: () => handleSearch()
-    }
+    { command: 'reset', callback: () => resetTranscript() },
+    { command: 'search', callback: () => handleSearch() }
   ];
 
   const {
@@ -81,9 +91,7 @@ const LegalKnowledge = () => {
   }, [fetchSearchHistory]);
 
   useEffect(() => {
-    if (transcript) {
-      setQuery(transcript);
-    }
+    if (transcript) setQuery(transcript);
   }, [transcript]);
 
   const handleSearch = async () => {
@@ -93,7 +101,7 @@ const LegalKnowledge = () => {
     setError(null);
     setResults(null);
     setUseTypewriter(true);
-    
+
     try {
       const data = await legalApiService.searchLegalKnowledge(query);
       setResults(data);
@@ -125,7 +133,7 @@ const LegalKnowledge = () => {
       setError(null);
       setResults(null);
       setUseTypewriter(false);
-      
+
       const searchData = await legalApiService.getSearchDetails(historyId);
       setQuery(searchData.query);
       setResults(searchData.results);
@@ -151,27 +159,43 @@ const LegalKnowledge = () => {
   const renderVoiceStatus = () => {
     if (!browserSupportsSpeechRecognition) {
       return (
-        <div className="mt-2 text-sm text-gray-500">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-2 text-sm text-gray-400"
+        >
           Browser doesn't support speech recognition.
-        </div>
+        </motion.div>
       );
     }
 
     if (!isMicrophoneAvailable) {
       return (
-        <div className="mt-2 text-sm text-red-500 flex items-center gap-2">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-2 text-sm text-red-400 flex items-center gap-2"
+        >
           <AlertCircle className="w-4 h-4" />
           Please allow microphone access to use voice input.
-        </div>
+        </motion.div>
       );
     }
 
     if (isListening) {
       return (
-        <div className="mt-2 flex items-center gap-2">
-          <div className="animate-pulse w-2 h-2 rounded-full bg-red-500"></div>
-          <span className="text-sm text-gray-700">Listening...</span>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-2 flex items-center gap-2"
+        >
+          <motion.div
+            className="w-2 h-2 rounded-full bg-red-500"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          />
+          <span className="text-sm text-indigo-300">Listening...</span>
+        </motion.div>
       );
     }
 
@@ -182,22 +206,27 @@ const LegalKnowledge = () => {
     if (!results) return null;
 
     const ResultContent = ({ children }) => (
-      <div className="mt-8 animate-fade-in">
-        <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-          <ChevronRight className="w-5 h-5 text-blue-600" />
-          Search Results
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mt-8"
+      >
+        <h3 className="text-lg font-medium mb-4 flex items-center gap-2 text-cyan-400">
+          <ChevronRight className="w-5 h-5" />
+          Legal Insights
         </h3>
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
+        <div className="bg-gradient-to-br from-gray-800 to-indigo-900 p-6 rounded-xl border border-indigo-700/50 shadow-lg hover:shadow-xl transition-shadow">
           {children}
         </div>
-      </div>
+      </motion.div>
     );
 
     return (
       <ResultContent>
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <h4 className="font-medium text-blue-700 mb-3">Summary</h4>
-          <div className="mt-2 text-gray-700">
+        <div className="mb-6 pb-6 border-b border-indigo-700/30">
+          <h4 className="font-medium text-cyan-400 mb-3">Summary</h4>
+          <div className="mt-2 text-indigo-200">
             {useTypewriter ? (
               <TypeWriter text={results.summary} speed={30} />
             ) : (
@@ -207,43 +236,55 @@ const LegalKnowledge = () => {
         </div>
 
         {results.relevantLaws?.length > 0 && (
-          <div className="mb-6 pb-6 border-b border-gray-200">
-            <h4 className="font-medium text-blue-700 mb-3">Relevant Laws</h4>
+          <div className="mb-6 pb-6 border-b border-indigo-700/30">
+            <h4 className="font-medium text-cyan-400 mb-3">Relevant Statutes</h4>
             <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
               {results.relevantLaws.map((law, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-indigo-800/50 p-4 rounded-lg hover:bg-indigo-800/70 transition-all"
+                >
                   <div className="flex items-start gap-2">
-                    <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <FileText className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-gray-900">{law.title}</p>
-                      <p className="text-sm text-gray-600 mt-1">{law.description}</p>
+                      <p className="font-medium text-indigo-100">{law.title}</p>
+                      <p className="text-sm text-indigo-300 mt-1">{law.description}</p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         )}
 
         {results.casePrecedents?.length > 0 && (
-          <div className="mb-6 pb-6 border-b border-gray-200">
-            <h4 className="font-medium text-blue-700 mb-3">Case Precedents</h4>
+          <div className="mb-6 pb-6 border-b border-indigo-700/30">
+            <h4 className="font-medium text-cyan-400 mb-3">Precedent Cases</h4>
             <div className="space-y-4">
               {results.casePrecedents.map((precedent, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-indigo-800/50 p-4 rounded-lg hover:bg-indigo-800/70 transition-all"
+                >
                   <div className="flex items-start gap-2">
-                    <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <FileText className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-gray-900">{precedent.title}</p>
-                      <p className="text-sm text-gray-600 mt-1">{precedent.description}</p>
-                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                      <p className="font-medium text-indigo-100">{precedent.title}</p>
+                      <p className="text-sm text-indigo-300 mt-1">{precedent.description}</p>
+                      <p className="text-xs text-indigo-400 mt-2 flex items-center gap-2">
                         <span className="font-medium">{precedent.court}</span>
                         <span>•</span>
                         <span>{precedent.date}</span>
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -251,13 +292,19 @@ const LegalKnowledge = () => {
 
         {results.references?.length > 0 && (
           <div>
-            <h4 className="font-medium text-blue-700 mb-3">References</h4>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <h4 className="font-medium text-cyan-400 mb-3">References</h4>
+            <ul className="space-y-2 text-sm text-indigo-300">
               {results.references.map((ref, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-blue-600 font-medium">{index + 1}.</span>
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-start gap-2"
+                >
+                  <span className="text-cyan-400 font-medium">{index + 1}.</span>
                   <span>{ref}</span>
-                </li>
+                </motion.li>
               ))}
             </ul>
           </div>
@@ -268,15 +315,19 @@ const LegalKnowledge = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
-          <h2 className="text-2xl font-semibold flex items-center gap-2 text-blue-800">
-            <BookOpen className="w-7 h-7 text-blue-600" />
-            Legal Knowledge Retrieval
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl overflow-hidden border border-indigo-700/50"
+      >
+        <div className="p-6 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800">
+          <h2 className="text-2xl font-semibold flex items-center gap-2 text-cyan-400">
+            <Scale className="w-7 h-7" />
+            Legal Codex
           </h2>
-          <p className="text-gray-600 mt-2 ml-9">
-            Search for the latest legal information, amendments, case precedents,
-            and legal interpretations.
+          <p className="text-indigo-300 mt-2 ml-9 text-sm">
+            Access real-time legal updates, amendments, and case precedents with AI precision.
           </p>
         </div>
 
@@ -287,111 +338,148 @@ const LegalKnowledge = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="e.g., What are the latest updates in cybercrime laws?"
-              className="w-full p-4 pr-24 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all group-hover:shadow-md"
+              className="w-full p-4 pr-24 bg-gray-700 border border-indigo-600/50 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-indigo-100 placeholder-indigo-400 transition-all group-hover:shadow-md"
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
               {browserSupportsSpeechRecognition && (
-                <button
+                <motion.button
                   onClick={toggleListening}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   className={`p-2 rounded-lg transition-all ${
                     isListening 
                       ? 'bg-red-600 hover:bg-red-700 text-white shadow-md' 
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                      : 'bg-indigo-700 hover:bg-indigo-600 text-cyan-300'
                   }`}
                   title={isListening ? "Stop voice input" : "Start voice input"}
                 >
                   {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                </button>
+                </motion.button>
               )}
-              <button
+              <motion.button
                 onClick={handleSearch}
                 disabled={isLoading || !query.trim()}
-                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all disabled:bg-gray-500 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
                 <Search className="w-5 h-5" />
-              </button>
+              </motion.button>
             </div>
           </div>
 
           {renderVoiceStatus()}
 
-          {isListening && transcript && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
-              <p className="text-sm text-blue-700">
-                <span className="font-medium">Current transcript:</span> {transcript}
-              </p>
-            </div>
-          )}
+          <AnimatePresence>
+            {isListening && transcript && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mt-4 p-4 bg-indigo-800/50 border border-indigo-700 rounded-lg"
+              >
+                <p className="text-sm text-cyan-300">
+                  <span className="font-medium">Current transcript:</span> {transcript}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 flex items-start gap-2 animate-fade-in">
-              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-              <p>{error}</p>
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300 flex items-start gap-2"
+              >
+                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <p>{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {isLoading && (
-            <div className="flex flex-col items-center justify-center my-8 space-y-4">
-              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-              <p className="text-gray-600">Searching legal knowledge base...</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center my-8 space-y-4"
+            >
+              <motion.div
+                className="rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+              <p className="text-indigo-300">Scanning legal archives...</p>
+            </motion.div>
           )}
 
           {renderResults()}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Clock className="w-6 h-6 text-blue-600" />
-            Search History
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="bg-gradient-to-br from-gray-800 to-indigo-900 rounded-xl shadow-xl overflow-hidden border border-indigo-700/50"
+      >
+        <div className="p-6 border-b border-indigo-700/30 bg-gradient-to-r from-indigo-900 to-gray-800">
+          <h2 className="text-xl font-semibold flex items-center gap-2 text-cyan-400">
+            <Clock className="w-6 h-6" />
+            Search Archives
           </h2>
         </div>
 
         <div className="p-6">
           {searchHistory.length === 0 ? (
             <div className="text-center py-8">
-              <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">No search history yet.</p>
+              <Clock className="w-12 h-12 text-indigo-600/50 mx-auto mb-3" />
+              <p className="text-indigo-400">No search archives yet.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-indigo-700/30">
               {searchHistory.map((item) => (
-                 <li
-                 key={item._id}
-                 className="py-4 px-4 hover:bg-blue-50 cursor-pointer transition-all rounded-lg group"
-               >
-                 <div className="flex items-start justify-between gap-3">
-                   <div 
-                     className="flex items-start gap-3 flex-grow"
-                     onClick={() => handleHistoryItemClick(item._id)}
-                   >
-                     <Search className="w-5 h-5 text-gray-400 mt-0.5 group-hover:text-blue-500 transition-colors" />
-                     <div>
-                       <p className="font-medium group-hover:text-blue-700 transition-colors">{item.query}</p>
-                       <p className="text-sm text-gray-500">
-                         {new Date(item.timestamp).toLocaleString()}
-                       </p>
-                     </div>
-                   </div>
-                   <button
-                     onClick={(e) => handleDeleteHistory(item._id, e)}
-                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                     title="Delete from history"
-                   >
-                     <Trash2 className="w-4 h-4" />
-                   </button>
-                 </div>
-               </li>
-             ))}
-           </ul>
-         )}
-       </div>
-     </div>
-   </div>
- );
+                <motion.li
+                  key={item._id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="py-4 px-4 hover:bg-indigo-800/50 cursor-pointer transition-all rounded-lg group"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div
+                      className="flex items-start gap-3 flex-grow"
+                      onClick={() => handleHistoryItemClick(item._id)}
+                    >
+                      <Search className="w-5 h-5 text-indigo-400 mt-0.5 group-hover:text-cyan-400 transition-colors" />
+                      <div>
+                        <p className="font-medium text-indigo-100 group-hover:text-cyan-400 transition-colors">
+                          {item.query}
+                        </p>
+                        <p className="text-sm text-indigo-400">
+                          {new Date(item.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <motion.button
+                      onClick={(e) => handleDeleteHistory(item._id, e)}
+                      whileHover={{ scale: 1.1, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 text-indigo-400 hover:text-red-400 hover:bg-red-900/30 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                      title="Delete from history"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
 };
 
 export default LegalKnowledge;

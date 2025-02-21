@@ -4,8 +4,6 @@ from pydantic import BaseModel
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from langchain_community.document_loaders.pdf import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
@@ -30,75 +28,43 @@ app.add_middleware(
         "http://localhost:5174"
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Define paths
 BASE_DIR = Path(__file__).parent
 CHROMA_DB_DIR = BASE_DIR / "chroma_db"
+INVESTIGATION_DB_DIR = BASE_DIR / "investigation_db"
 
 # Initialize global variables
-db = None
-retrieval_chain = None
+qa_db = None
+qa_chain = None
+investigation_db = None
+investigation_chain = None
 
 class Query(BaseModel):
     question: str
 
-class DocumentUpdate(BaseModel):
-    pdf_path: str
-
-def initialize_db():
+def initialize_db(db_path: Path):
     """Initialize ChromaDB and return the database instance"""
     embedding_function = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
     
-    # If ChromaDB exists, load it regardless of PDF presence
-    if CHROMA_DB_DIR.exists():
-        print(f"Loading existing ChromaDB from {CHROMA_DB_DIR}...")
+    if db_path.exists():
+        print(f"Loading existing ChromaDB from {db_path}...")
         return Chroma(
-            persist_directory=str(CHROMA_DB_DIR),
+            persist_directory=str(db_path),
             embedding_function=embedding_function
         )
     else:
         raise RuntimeError(
-            f"ChromaDB directory not found at {CHROMA_DB_DIR}. "
-            "Please run the indexing script locally first to create the embeddings database."
+            f"ChromaDB directory not found at {db_path}. "
+            "Please ensure the database exists."
         )
 
-def create_new_db(pdf_path: str):
-    """Create a new ChromaDB from a PDF file"""
-    pdf_path = Path(pdf_path)
-    if not pdf_path.exists():
-        raise FileNotFoundError(f"PDF file not found at {pdf_path}")
-    
-    embedding_function = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-    
-    print(f"Creating new ChromaDB at {CHROMA_DB_DIR}...")
-    loader = PyPDFLoader(str(pdf_path))
-    docs = loader.load()
-    
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200
-    )
-    documents = text_splitter.split_documents(docs)
-    
-    # Ensure the directory exists
-    CHROMA_DB_DIR.mkdir(parents=True, exist_ok=True)
-    
-    db = Chroma.from_documents(
-        documents,
-        embedding_function,
-        persist_directory=str(CHROMA_DB_DIR)
-    )
-    db.persist()
-    return db
-
-def setup_chain(db):
+def setup_chain(db, system_prompt: str):
     """Set up the retrieval chain with ChatGroq"""
     chat_model = ChatGroq(
         model_name="mixtral-8x7b-32768",
@@ -106,44 +72,57 @@ def setup_chain(db):
         api_key=os.getenv("GROQ_API_KEY")
     )
     
-    prompt = ChatPromptTemplate.from_template("""
-    Answer the following question based only on the provided context.
-    Think step by step before providing a detailed answer.
-    Also make sure do not include like from the context provided or from database just provide a professional and sophisticated.
-    I will tip you $1000 if the user finds the answer helpful.
-    <context>
-    {context}
-    </context>
-    Question: {input}""")
+    prompt = ChatPromptTemplate.from_template(system_prompt)
     
     doc_chain = create_stuff_documents_chain(chat_model, prompt)
-    retriever = db.as_retriever()
+    retriever = db.as_retriever(
+        search_type="mmr",
+        search_kwargs={"k": 4}
+    )
     return create_retrieval_chain(retriever, doc_chain)
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the database and chain when the API starts"""
-    global db, retrieval_chain
+    """Initialize both databases and chains when the API starts"""
+    global qa_db, qa_chain, investigation_db, investigation_chain
     try:
-        db = initialize_db()
-        retrieval_chain = setup_chain(db)
+        # Initialize QA database and chain
+        qa_db = initialize_db(CHROMA_DB_DIR)
+        qa_chain = setup_chain(qa_db, """
+        Answer the following question based only on the provided context.
+        Think step by step before providing a detailed answer.
+        Also make sure do not include like from the context provided or from database just provide a professional and sophisticated.
+        I will tip you $1000 if the user finds the answer helpful.
+        <context>
+        {context}
+        </context>
+        Question: {input}""")
+        
+        # Initialize Investigation database and chain
+        investigation_db = initialize_db(INVESTIGATION_DB_DIR)
+        investigation_chain = setup_chain(investigation_db, """
+        Analyze the following investigation-related question based on the provided context.
+        Think step by step and provide a detailed analysis with potential insights and recommendations.
+        Focus on identifying patterns, risks, and actionable intelligence.
+        <context>
+        {context}
+        </context>
+        Question: {input}""")
     except Exception as e:
         print(f"Error during initialization: {e}")
         raise e
 
 @app.post("/qa")
 async def answer_question(query: Query):
-    """
-    Endpoint to answer questions based on the legal document
-    """
-    if not db or not retrieval_chain:
+    """Endpoint to answer questions based on the legal document"""
+    if not qa_db or not qa_chain:
         raise HTTPException(
             status_code=500,
-            detail="System not properly initialized. Please check server logs."
+            detail="QA system not properly initialized. Please check server logs."
         )
     
     try:
-        response = retrieval_chain.invoke({"input": query.question})
+        response = qa_chain.invoke({"input": query.question})
         return {"answer": response['answer']}
     except Exception as e:
         raise HTTPException(
@@ -151,32 +130,33 @@ async def answer_question(query: Query):
             detail=f"Error processing question: {str(e)}"
         )
 
-@app.post("/update-documents")
-async def update_documents(update: DocumentUpdate):
-    """
-    Endpoint to update the document database with a new PDF
-    This should only be called in a development/staging environment
-    """
-    global db, retrieval_chain
+@app.post("/investigation")
+async def investigate_question(query: Query):
+    """Endpoint to answer investigation-related questions"""
+    if not investigation_db or not investigation_chain:
+        raise HTTPException(
+            status_code=500,
+            detail="Investigation system not properly initialized. Please check server logs."
+        )
+    
     try:
-        db = create_new_db(update.pdf_path)
-        retrieval_chain = setup_chain(db)
-        return {"status": "success", "message": "Document database updated successfully"}
+        response = investigation_chain.invoke({"input": query.question})
+        return {"answer": response['answer']}
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Error updating documents: {str(e)}"
+            detail=f"Error processing investigation question: {str(e)}"
         )
 
 @app.get("/health")
 async def health_check():
-    """
-    Endpoint to check if the service is running and properly initialized
-    """
+    """Endpoint to check if both services are running and properly initialized"""
     return {
         "status": "healthy",
-        "database_initialized": db is not None,
-        "chain_initialized": retrieval_chain is not None
+        "qa_database_initialized": qa_db is not None,
+        "qa_chain_initialized": qa_chain is not None,
+        "investigation_database_initialized": investigation_db is not None,
+        "investigation_chain_initialized": investigation_chain is not None
     }
 
 if __name__ == "__main__":

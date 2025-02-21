@@ -1,5 +1,6 @@
 .env
 legal/
-constitution.pdf
-repealedfileopen.pdf
-indexing_script.py
+
+db_manager.py
+
+Database_content
