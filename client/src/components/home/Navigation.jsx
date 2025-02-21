@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Shield, Menu, X } from "lucide-react";
+import { Shield, Menu, X, Minimize2, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,6 +82,15 @@ const Navigation = () => {
                 {item.title}
               </motion.a>
             ))}
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 cursor-pointer rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors">
+              {isFullscreen ? (
+                <Minimize2 className="w-5 h-5" />
+              ) : (
+                <Maximize2 className="w-5 h-5" />
+              )}
+            </button>
           </div>
 
           {/* Mobile Menu Button */}

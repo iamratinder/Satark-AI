@@ -103,7 +103,7 @@ const Hero = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white font-sans overflow-hidden">
+    <div className="relative flex justify-center items-center min-h-screen bg-black text-white font-sans overflow-hidden">
       <BackgroundEffect />
       <motion.main
         variants={containerVariants}
