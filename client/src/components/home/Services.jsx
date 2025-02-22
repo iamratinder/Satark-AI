@@ -53,15 +53,6 @@ const ServiceCard = ({
             </motion.li>
           ))}
         </ul>
-
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="mt-8 w-full py-3 px-6 rounded-lg bg-gradient-to-r 
-            from-cyan-500 to-blue-500 text-white font-medium
-            hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
-          Learn More
-        </motion.button>
       </div>
     </motion.div>
   );
