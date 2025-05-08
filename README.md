@@ -215,9 +215,6 @@ python main.py
 - **IOS Developer**
   - [Irfan](https://github.com/00irfan971)
 
-## Contributors
-![Contributors](https://contrib.rocks/image?repo=chahatkesh/satark.ai)
-
 ---
 
 <p align="center">🚀 Satark AI – Transforming Legal Workflows with AI-Powered Insights! 🚀</p>
