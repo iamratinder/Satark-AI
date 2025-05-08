@@ -15,7 +15,7 @@ Satark AI is an AI-powered legal assistant designed to streamline law enforcemen
 ## Demo & Links
 
 - [Live Demo](https://satark-ai.vercel.app)
-- [Video Presentation]()
+- [Video Presentation](https://youtu.be/siLfjw4gTPA?feature=shared)
 - [Product Doc](https://docs.google.com/document/d/1xNXj91kWD2a3_SSlFHk4HmZgFvFxtn5Vf0v8UkC2mcg/edit?usp=sharing)
 
 ## Table of Contents
